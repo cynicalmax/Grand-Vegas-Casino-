@@ -1,0 +1,12 @@
+{
+  "name": "goldfuchs-casino",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Goldfuchs Casino – private Offline-Slot-App (Spielgeld, keine Werbung)",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "smoke": "node scripts/build.mjs && node scripts/smoke.mjs"
+  }
+}
