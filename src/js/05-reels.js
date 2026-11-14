@@ -1,17 +1,18 @@
 'use strict';
 /* ===== Goldfuchs reels: canvas reel set with physics, anticipation frames, win cycling, hold&spin board ===== */
 const FELT={biber:['#2a8a36','#0e4418'],donner:['#7a3214','#2a0c02'],rubin:['#8a0c30','#2a0010'],frei:['#2e1e96','#0a0630'],glut:['#4a120c','#140402'],schwein:['#8a1e66','#2a0420'],hamster:['#334058','#0e1018'],revier:['#106a44','#03180e']};
-const KEYS={biber:{'🦫':'toolbox','🏡':'saw','🪓':'tape','🪵':'hammer',W:'wildsign',B:'wheeltok',C:'hardhat'},donner:{'🦬':'bf-bison','🦅':'bf-eagle','🐺':'bf-wolf','🦌':'bf-elk',W:'bf-wild',S:'bf-free'},
+const KEYS={biber:{'🦫':'bm-pig1','🏡':'bm-pig2','🪓':'bm-pig3','🪵':'bm-tool',W:'bm-wild',B:'bm-wheel',C:'bm-hat'},donner:{'🦬':'bf-bison','🦅':'bf-eagle','🐺':'bf-wolf','🦌':'bf-elk',W:'bf-wild',S:'bf-free'},
  rubin:{'7️⃣':'seven','🔔':'bell','💠':'sapphire','🍒':'cherry','🍋':'lemon','🍉':'bar','🍇':'grapes',W:'wild7',Z:'bolt',C:'ruby'},frei:{'7️⃣':'seven2','⭐':'star','🔔':'bell','🍀':'clover','🍒':'cherry','🍊':'orange','🍇':'grapes',W:'wild7b',Z:'bolt',B:'giftbonus'},
  glut:{'🎸':'guitar','🏍️':'dice','🤠':'cowboy','🌵':'cactus',W:'wildflame',S:'slotm',C:'fireball'},schwein:{'👑':'crown','💎':'diamond','💰':'bag','🎩':'tophat',W:'wildrain',P0:'pig0',P1:'pig1',P2:'pig2'},
  hamster:{'🏦':'bank','💼':'briefcase','🔑':'key','🧲':'goldstack',W:'wildspark',S:'freeticket',C:'coin',H:'collector'},revier:{'🐯':'amber','🦜':'emerald','🐍':'amethyst','🌺':'rose',W:'wilddia',S:'freestar'}};
 /* animierte Symbole: 6x4-Spritesheet, 24 Frames à 83 ms (Max' Asset-Paket) */
-const ANIM={'bf-bison':'an-bison','bf-eagle':'an-eagle','bf-wolf':'an-wolf','bf-elk':'an-elk','bf-wild':'an-wild','bf-free':'an-free'};
+const ANIM={'bf-bison':'an-bison','bf-eagle':'an-eagle','bf-wolf':'an-wolf','bf-elk':'an-elk','bf-wild':'an-wild','bf-free':'an-free',
+ 'bm-pig1':'an-bm-pig1','bm-pig2':'an-bm-pig2','bm-pig3':'an-bm-pig3','bm-wild':'an-bm-wild','bm-wheel':'an-bm-wheel','bm-hat':'an-bm-hat'};
 const RANKSTYLE={biber:'green',donner:'prairie',glut:'red',schwein:'multi',hamster:'gold',revier:'multi'};
-const TIER=['hut','cabin','brick','mansion'],JPST={mini:'green',minor:'cyan',major:'pink',grand:'gold'};
+const TIER=['hut','cabin','brick','mansion'],TIERK={biber:['bm-hut','bm-cabin','bm-brick','bm-mansion']},JPST={mini:'green',minor:'cyan',major:'pink',grand:'gold'};
 const RE={cv:null,x:null,cfg:null,st:null,W:0,H:0,rows:3,cw:0,ch:0,px:6,py:6,dv:4,cols:[],mode:'reels',HS:null,win:null,flash:new Map(),antic:[0,0,0,0,0],raf:0,last:0,t:0,unit:1,
  hide:new Set(),spinSet:null,pop:new Map(),rev:new Map(),hl:null,tension:false,bg:null,zoneCols:null,turbo:false,glintT:0,glints:[],onCycle:null,grid:null};
-function symKey(s,hs){const id=RE.cfg.id,k=KEYS[id]||{};if(s.s==='C'){if(s.d)return'boom';if(s.lvl!=null&&hs)return TIER[s.lvl];return k.C||'coin'}
+function symKey(s,hs){const id=RE.cfg.id,k=KEYS[id]||{};if(s.s==='C'){if(s.d)return'boom';if(s.lvl!=null&&hs)return(TIERK[id]||TIER)[s.lvl];return k.C||'coin'}
  if(k[s.s])return k[s.s];if(/^(A|K|Q|J|10|9)$/.test(s.s))return'rk-'+(RANKSTYLE[id]||'multi')+'-'+s.s;return'star'}
 function reMount(cv,cfg,st){RE.cv=cv;RE.x=cv.getContext('2d');RE.cfg=cfg;RE.st=st;RE.mode='reels';RE.HS=null;RE.win=null;RE.flash.clear();RE.pop.clear();RE.rev.clear();RE.hide.clear();RE.hl=null;RE.spinSet=null;RE.tension=false;RE.antic=[0,0,0,0,0];
  RE.cols=[0,1,2,3,4].map(()=>({off:0,v:0,st:'idle',map:new Map(),t:0}));if(!RE.raf){RE.last=performance.now();RE.raf=requestAnimationFrame(reLoop)}}

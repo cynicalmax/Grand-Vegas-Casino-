@@ -9,7 +9,7 @@ const BN=['Lena','Maxi','Jonas','Mia','Paul','Emma','Felix','Hannah','Luca','Sop
 const PETS=['🥚','🐣','🐥','🐲','🐉'],PETN=['Rohstein','Saphir','Smaragd','Rubin','Kronjuwel'];
 const TIPS=['Ich bin Goldie! Tipp mich an, wenn du einen Rat brauchst.','Jeder Dreh hat exakt dieselbe Gewinnchance – versprochen. Nur der Booster hebt die Gewinne offen an.','Im High-Roller-Raum gibt es 3× XP und doppelte Pass-Punkte.','Dein Glücksjuwel erhöht alle Bonus-Münzen. Schleifen lohnt sich!','Komplette Kartensets bringen dicke Belohnungen.','Das Tagesrad wächst mit deiner Serie – komm jeden Tag vorbei!','Platz den Ballon-Deal: Er hebt alle Shop-Pakete eine Stunde lang an.'];
 const LOGO={biber:['GOLDENER','BAUMEISTER','white','gold'],donner:['DONNER','HUF','orange','gold'],rubin:['BLITZ-TREFFER','RUBIN','white','red'],frei:['BLITZ-TREFFER','GRENZENLOS','white','cyan'],glut:['GLUTKETTE','DOPPELKNALL','orange','red'],schwein:['DREI','GOLDTÖPFE','pink','gold'],hamster:['GOLDTRESOR','ROYAL','gold','white'],revier:['WILDES','REVIER','green','gold']};
-const HERO={biber:['hardhat','mansion','toolbox'],donner:['bf-bison','bf-wild','bf-eagle'],rubin:['ruby','seven','bolt'],frei:['bolt','seven2','giftbonus'],glut:['fireball','slotm','guitar'],schwein:['pot2','pig1','crown'],hamster:['vault','goldstack','coin'],revier:['emerald','amber','rose']};
+const HERO={biber:['bm-pig1','bm-mansion','bm-wild'],donner:['bf-bison','bf-wild','bf-eagle'],rubin:['ruby','seven','bolt'],frei:['bolt','seven2','giftbonus'],glut:['fireball','slotm','guitar'],schwein:['pot2','pig1','crown'],hamster:['vault','goldstack','coin'],revier:['emerald','amber','rose']};
 const TIERS=[[10,'BIG WIN'],[25,'SUPER WIN'],[50,'MEGA WIN'],[100,'EPIC WIN'],[250,'LEGENDÄR']];
 function def(){return{coins:5e6,gems:30,xp:0,lvl:1,vip:0,room:0,bet:[2,0,0],spins:0,won:0,daily:{d:'',streak:0},hour:0,q:{d:'',l:[]},sq:{},sqc:{},cards:{},packs:1,stars:0,setc:{},pet:{lvl:1,xp:0,treats:3},pass:{m:'',pts:0,c:[]},wk:{id:0,sc:0},boost:0,scr:'',st:{},snd:1,mus:1,seen:0,deal:{m:1,u:0,d:''},mini:0}}
 function load(){const s=def();try{Object.assign(s,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}if(!s.deal)s.deal={m:1,u:0,d:''};return s}
@@ -149,7 +149,7 @@ const WMAP={'GEWINN':'w-gewinn','BIG WIN':'w-big','SUPER WIN':'w-super','MEGA WI
 function TT(t,cls,fit){return WMAP[t]&&GFX.url[WMAP[t]]?WT(WMAP[t],cls):gt(t,cls,fit)}
 let OVN=0;
 /* Slot-eigene Sprite-Animationen in Gewinn- und Freispiel-Fenstern (spielt einmal, bleibt auf dem letzten Bild stehen) */
-const SLOTFX={donner:{cel:'an-charge',fs:'an-reveal'}};
+const SLOTFX={donner:{cel:'an-charge',fs:'an-reveal'},biber:{cel:'an-bm-cel',fs:'an-bm-house'}};
 function slotFx(w){const id=cur&&cur.cfg&&cur.cfg.id,k=(SLOTFX[id]||{})[w];return k&&GFX.url[k]?`<i class="spr sfx-${w}" style="background-image:url(${GFX.url[k]})"></i>`:''}
 function ovShow(cls,h){const old=$('#ovl'),o=old.cloneNode(false);old.replaceWith(o);OVN++;o.className='ov '+cls;o.innerHTML=h;fitAll(o);return o}
 function ovHide(){const o=$('#ovl'),n=OVN;o.classList.add('out');return sleep(280).then(()=>{if(n!==OVN)return;o.className='hide';o.innerHTML=''})}
