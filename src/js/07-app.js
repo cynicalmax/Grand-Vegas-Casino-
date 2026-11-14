@@ -391,6 +391,7 @@ async function splash(again){const sp=$('#splash');sp.classList.remove('hide','o
  if(!again){sp.style.backgroundImage=`url(${sceneURL('lobby')})`;const fl=document.fonts?Promise.race([document.fonts.load('40px Disp'),sleep(2500)]).catch(()=>{}):Promise.resolve();
   st.textContent='Lade Schriften …';await fl;st.textContent='Poliere das Gold …';await loadAssets(p=>{bar.style.width=Math.round(p*70)+'%'});st.textContent='Male die Kulissen …';
   for(const k of Object.keys(LOGO)){sceneURL(k);bar.style.width=(70+Object.keys(SCENEURL).length/9*25)+'%';await sleep(10)}fxInit();startArtObserver();Object.keys(LOGO).forEach(k=>document.head.insertAdjacentHTML('beforeend',`<style>.sc-${k} .slot{background-image:url(${SCENEURL[k]})}</style>`));
+  if(GFX.url['bg-donner-fs'])document.head.insertAdjacentHTML('beforeend',`<style>#app.fsmode.sc-donner .slot{background-image:url(${GFX.url['bg-donner-fs']})}</style>`);
   bar.style.width='100%';st.textContent='Alles bereit!';drawSplashLogo($('#splogo'))}
  await sleep(300);$('#spl').classList.add('hide');go_.classList.remove('hide');await waitTap(go_);unlockAudio();music('lobby');SFX.collect();fxFlash(innerWidth/2,innerHeight/2,innerWidth);sp.classList.add('out');await sleep(450);sp.classList.add('hide');if(!again)boot()}
 function boot(){periodic();HUD.shown=null;hud();go('lobby');$('#app').style.backgroundImage=`url(${SCENEURL.lobby})`;
