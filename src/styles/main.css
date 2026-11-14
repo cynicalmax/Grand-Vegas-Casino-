@@ -297,3 +297,10 @@ img.wtxt{display:block;height:48px;width:auto;max-width:100%;margin:0 auto;objec
 .dtot{margin-top:10px;text-align:center}.dtot small{display:block;font-family:var(--f);font-size:14px;color:#cdb8ff;letter-spacing:2px}.dtot .gt{font-family:var(--n);font-size:44px}
 .sign .sgi b{font-family:var(--f)}
 .tile canvas{background:#1a0640}
+/* Sprite-Animationen aus Max' Asset-Paketen: 6x4 Frames, 24 Bilder in 1992 ms */
+i.spr{display:block;pointer-events:none;background-repeat:no-repeat;background-size:600% 400%;background-position:0 0;
+ animation:sprx 498ms steps(6,jump-none) 4 forwards,spry 1992ms steps(4,jump-none) 1 forwards}
+@keyframes sprx{from{background-position-x:0%}to{background-position-x:100%}}
+@keyframes spry{from{background-position-y:0%}to{background-position-y:100%}}
+i.spr.sfx-cel,i.spr.sfx-fs{width:min(46vw,190px);aspect-ratio:1;margin:-14px auto 2px;filter:drop-shadow(0 10px 14px #000b)}
+@media (prefers-reduced-motion:reduce){i.spr{animation:none;background-position:100% 100%}}
