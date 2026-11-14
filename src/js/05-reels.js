@@ -9,7 +9,7 @@ const RANKSTYLE={biber:'green',donner:'orange',glut:'red',schwein:'multi',hamste
 const TIER=['hut','cabin','brick','mansion'],JPST={mini:'green',minor:'cyan',major:'pink',grand:'gold'};
 const RE={cv:null,x:null,cfg:null,st:null,W:0,H:0,rows:3,cw:0,ch:0,px:6,py:6,dv:4,cols:[],mode:'reels',HS:null,win:null,flash:new Map(),antic:[0,0,0,0,0],raf:0,last:0,t:0,unit:1,
  hide:new Set(),spinSet:null,pop:new Map(),rev:new Map(),hl:null,tension:false,bg:null,zoneCols:null,turbo:false,glintT:0,glints:[],onCycle:null,grid:null};
-function symKey(s,hs){const id=RE.cfg.id,k=KEYS[id]||{};if(s.s==='C'){if(s.d)return'boom';if(s.lvl!=null&&hs)return TIER[s.lvl];return(s.j&&k['C'+s.j])||k.C||'coin'}
+function symKey(s,hs){const id=RE.cfg.id,k=KEYS[id]||{};if(s.s==='C'){if(s.d)return'boom';if(s.lvl!=null&&hs)return TIER[s.lvl];return k.C||'coin'}
  if(k[s.s])return k[s.s];if(/^(A|K|Q|J|10|9)$/.test(s.s))return'rk-'+(RANKSTYLE[id]||'multi')+'-'+s.s;return'star'}
 function reMount(cv,cfg,st){RE.cv=cv;RE.x=cv.getContext('2d');RE.cfg=cfg;RE.st=st;RE.mode='reels';RE.HS=null;RE.win=null;RE.flash.clear();RE.pop.clear();RE.rev.clear();RE.hide.clear();RE.hl=null;RE.spinSet=null;RE.tension=false;RE.antic=[0,0,0,0,0];
  RE.cols=[0,1,2,3,4].map(()=>({off:0,v:0,st:'idle',map:new Map(),t:0}));if(!RE.raf){RE.last=performance.now();RE.raf=requestAnimationFrame(reLoop)}}

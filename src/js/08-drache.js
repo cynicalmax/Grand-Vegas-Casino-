@@ -12,6 +12,9 @@ FELT.drache=['#5a0a14','#1a0206'];
 KEYS.drache={'🐲':'dr_dragon','🦚':'dr_phoenix','🏮':'dr_lantern','🥮':'dr_ingot',A:'dr_ace',K:'dr_king','🪷':'dr_lotus','🧿':'dr_jade','🪭':'dr_fan',
  W:'dr_wild',S:'dr_free',C:'dr_ball',Cmini:'dr_ball_mini',Cminor:'dr_ball_minor',Cmajor:'dr_ball_major',Cgrand:'dr_ball_grand'};
 THEME_OF.drache='rock';
+/* Jackpot-Kugeln in eigener Farbe (MINI grün, MINOR blau, MAJOR violett) */
+const _drSym=symKey;
+symKey=function(s,hs){if(RE.cfg&&RE.cfg.id==='drache'&&s&&s.s==='C'&&s.j&&!s.d){const k=KEYS.drache['C'+s.j];if(k)return k}return _drSym(s,hs)};
 LOGO.drache=['DRACHEN','FEUER','gold','red'];
 HERO.drache=['dr_dragon','dr_phoenix','dr_ball_grand'];
 /* Kulisse: Laternenstraße bei Nacht, für den Bonus der Vulkantempel */
