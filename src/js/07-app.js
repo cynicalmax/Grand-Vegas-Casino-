@@ -11,7 +11,7 @@ const TIPS=['Ich bin Goldie! Tipp mich an, wenn du einen Rat brauchst.','Jeder D
 const LOGO={biber:['GOLDENER','BAUMEISTER','white','gold'],donner:['DONNER','HUF','orange','gold'],rubin:['BLITZ-TREFFER','RUBIN','white','red'],frei:['BLITZ-TREFFER','GRENZENLOS','white','cyan'],glut:['GLUTKETTE','DOPPELKNALL','orange','red'],schwein:['DREI','GOLDTÖPFE','pink','gold'],hamster:['GOLDTRESOR','ROYAL','gold','white'],revier:['WILDES','REVIER','green','gold']};
 const HERO={biber:['bm-pig1','bm-mansion','bm-wild'],donner:['bf-bison','bf-wild','bf-eagle'],rubin:['ruby','seven','bolt'],frei:['bolt','seven2','giftbonus'],glut:['fireball','slotm','guitar'],schwein:['pot2','pig1','crown'],hamster:['vault','goldstack','coin'],revier:['emerald','amber','rose']};
 const TIERS=[[10,'BIG WIN'],[25,'SUPER WIN'],[50,'MEGA WIN'],[100,'EPIC WIN'],[250,'LEGENDÄR']];
-function def(){return{coins:5e6,gems:30,xp:0,lvl:1,vip:0,room:0,bet:[2,0,0],spins:0,won:0,daily:{d:'',streak:0},hour:0,q:{d:'',l:[]},sq:{},sqc:{},cards:{},packs:1,stars:0,setc:{},pet:{lvl:1,xp:0,treats:3},pass:{m:'',pts:0,c:[]},wk:{id:0,sc:0},boost:0,scr:'',st:{},snd:1,mus:1,seen:0,deal:{m:1,u:0,d:''},mini:0}}
+function def(){return{coins:5e6,gems:30,xp:0,lvl:1,vip:0,room:0,bet:[2,0,0],spins:0,won:0,daily:{d:'',streak:0},hour:0,q:{d:'',l:[]},sq:{},sqc:{},cards:{},packs:1,stars:0,setc:{},pet:{lvl:1,xp:0,treats:3},pass:{m:'',pts:0,c:[]},wk:{id:0,sc:0},boost:0,scr:'',st:{},snd:1,mus:1,seen:0,deal:{m:1,u:0,d:''},mini:0,fav:[],last:'',name:'',vol:1,vib:1,lessfx:0}}
 function load(){const s=def();try{Object.assign(s,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}if(!s.deal)s.deal={m:1,u:0,d:''};return s}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load(),cur=null,tab='lobby';
@@ -30,9 +30,9 @@ const HUD={shown:null,lock:0,raf:0};
 function coinsTxt(v){return v<1e15?fmtFull(v):fmt(v)}
 function tweenCoins(to,ms){cancelAnimationFrame(HUD.raf);const from=HUD.shown==null?to:HUD.shown,t0=performance.now(),el=$('#coins');if(to>from)$('#coinpill').classList.add('bump');
  const st=n=>{const u=Math.min(1,(n-t0)/(ms||500)),e=1-Math.pow(1-u,3);HUD.shown=from+(to-from)*e;el.textContent=coinsTxt(HUD.shown);if(u<1)HUD.raf=requestAnimationFrame(st);else $('#coinpill').classList.remove('bump')};st(t0)}
-function hud(){if(!HUD.lock)tweenCoins(S.coins,HUD.shown==null||S.coins<HUD.shown?150:700);$('#gems').textContent=S.gems;$('#lvl').textContent=S.lvl;$('#xpt').textContent='LEVEL '+S.lvl;$('#xpb').style.width=Math.min(100,S.xp/need(S.lvl)*100)+'%';$('#sndb').innerHTML=A(S.snd||S.mus?'sound':'mute')}
+function hud(){if(!HUD.lock)tweenCoins(S.coins,HUD.shown==null||S.coins<HUD.shown?150:700);$('#gems').textContent=S.gems;$('#lvl').textContent=S.lvl;$('#xpt').textContent='LEVEL';$('#xpb').style.width=Math.min(100,S.xp/need(S.lvl)*100)+'%';}
 function addXp(x){S.xp+=x;while(S.xp>=need(S.lvl)){S.xp-=need(S.lvl);S.lvl++;const c=Math.round(base()*2*petM());S.coins+=c;S.gems+=2;const pk=S.lvl%3===0;if(pk)S.packs++;levelUp(c,pk)}}
-function levelUp(c,pk){const u=SLOTS.find(s=>s.lvl===S.lvl);toast(`⭐ LEVEL ${S.lvl}! +${fmt(c)} 🪙 +2 💎${pk?' +🃏':''}`);SFX.bonus();const[x,y]=elCenter('#lvl');fxStars(x,y,14);fxRing(x,y,{s:10,s2:90});if(u)setTimeout(()=>toast(`🔓 Neuer Slot: ${u.name}`),900);if(S.lvl===10)setTimeout(()=>toast('👑 High-Roller-Raum geöffnet!'),1600)}
+function levelUp(c,pk){vib([40,40,80]);const u=SLOTS.find(s=>s.lvl===S.lvl);toast(`⭐ LEVEL ${S.lvl}! +${fmt(c)} 🪙 +2 💎${pk?' +🃏':''}`);SFX.bonus();const[x,y]=elCenter('#lvl');fxStars(x,y,14);fxRing(x,y,{s:10,s2:90});if(u)setTimeout(()=>toast(`🔓 Neuer Slot: ${u.name}`),900);if(S.lvl===10)setTimeout(()=>toast('👑 High-Roller-Raum geöffnet!'),1600)}
 function toast(t){const d=document.createElement('div');d.className='toast';d.innerHTML=t;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3100);while($('#toasts').children.length>3)$('#toasts').firstChild.remove()}
 let lastSay=TIPS[0];function say(t){lastSay=t;const b=$('#bub');if(b)b.textContent=t}
 function modal(h,lock,cls){$('#mbox').className=cls||'';$('#mbox').innerHTML=(lock?'':'<button class="x" data-act="close">✕</button>')+h;$('#modal').classList.remove('hide');$('#modal').dataset.lock=lock?1:''}
@@ -49,28 +49,20 @@ function qGen(){const d=today();if(S.q.d===d)return;const p=[0,1,2,3,4].sort(()=
 function qAdd(k){for(const q of S.q.l)if(QT[q.i].k===k&&q.p<q.n){q.p++;if(q.p>=q.n){toast('📜 Quest erfüllt – Belohnung abholen!');navDraw()}}}
 const qRew=j=>Math.round(base()*3*(j+1)*petM());
 /* ---------- navigation ---------- */
-const NAV=[['lobby','🏠','Lobby'],['quests','📜','Quests'],['cards','🃏','Karten'],['pet','🐉','Juwel'],['rank','🏆','Rang'],['pass','🛤️','Pass'],['vip','👑','VIP']];
-function navDraw(){const dot={quests:S.q.l.some(q=>q.p>=q.n&&!q.c),cards:S.packs>0,pet:S.pet.treats>0,pass:passClaimable()};$('#nav').innerHTML=NAV.map(n=>`<button data-act="go" data-t="${n[0]}" class="${tab===n[0]?'on':''}">${n[1]}<small>${n[2]}</small>${dot[n[0]]?'<i class="dot"></i>':''}</button>`).join('')}
+const NAV=[['lobby','mn-nav-play','Spielen'],['cards','mn-nav-coll','Sammlung'],['quests','mn-nav-task','Aufgaben'],['bonus','mn-nav-bonus','Bonus'],['more','mn-nav-more','Mehr']];
+const NAVOF={pet:'cards',rank:'more',pass:'more',vip:'more',profile:'more'};
+const bonusReady=()=>Date.now()>=S.hour+36e5||S.daily.d!==today()||S.scr!==today()||Date.now()>=S.mini;
+function navDraw(){const dot={quests:S.q.l.some(q=>q.p>=q.n&&!q.c),cards:S.packs>0||S.pet.treats>0,bonus:bonusReady(),more:passClaimable()},on=NAVOF[tab]||tab;navDraw.br=dot.bonus;$('#nav').innerHTML=NAV.map(n=>`<button data-act="go" data-t="${n[0]}" class="${on===n[0]?'on':''}">${A(n[1])}<small>${n[2]}</small>${dot[n[0]]?'<i class="dot"></i>':''}</button>`).join('')}
 function go(t){if(cur&&cur.busy){cur.auto=false;toast('Dreh läuft noch – einen Moment…');return}if(cur){reUnmount();cur=null}tab=t;$('#app').classList.remove('inslot');$('#app').className='sc-lobby';periodic();setTheme('lobby');
- ({lobby:vLobby,quests:vQuests,cards:vCards,pet:vPet,rank:vRank,pass:vPass,vip:vVip})[t]();navDraw();hud();save();view.scrollTop=0}
+ ({lobby:vLobby,quests:vQuests,cards:vCards,pet:vPet,rank:vRank,pass:vPass,vip:vVip,bonus:vBonus,more:vMore,profile:vProfile})[t]();subNav(t);navDraw();hud();save();view.scrollTop=0}
 /* ---------- lobby ---------- */
 function drawTile(cv,s){const w=cv.width,h=cv.height,x=cv.getContext('2d');sceneURL(s.id);const sc=SCENECV[s.id];if(sc)x.drawImage(sc,0,0,sc.width,sc.width*h/w,0,0,w,h);
  const g=x.createLinearGradient(0,h*.4,0,h);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(10,0,30,.9)');x.fillStyle=g;x.fillRect(0,0,w,h);glow(x,w/2,h*.38,w*.6,'#fff3c0',.4);const hk=HERO[s.id];
  x.drawImage(assetCanvas(hk[1]),w*.0,h*.3,w*.46,w*.46);x.drawImage(assetCanvas(hk[2]),w*.54,h*.3,w*.46,w*.46);x.drawImage(assetCanvas(hk[0]),w*.12,h*.05,w*.76,w*.76);const lg=assetCanvas('logo-'+s.id),lw=w*.98,lh=lw*lg.height/lg.width;x.drawImage(lg,(w-lw)/2,h*.97-lh,lw,lh)}
 const tileH=(s,bet)=>{const c=S.sqc[s.id]||0,lk=S.lvl<s.lvl;return`<div class="tile ${lk?'lock':''}" data-act="slot" data-id="${s.id}"><canvas data-tile="${s.id}"></canvas><u>${s.coin?(s.hs?'GRAND':'MAJOR')+' '+fmt(JP[s.hs?'grand':'major']*bet*SCALE[s.id]):s.pigs?'3 BONUS-TÖPFE':s.bonus?'AUSWAHL-BONUS':'FREISPIELE'}</u>${lk?`<div class="lk">🔒<b>LEVEL ${s.lvl}</b></div>`:''}<span class="st">${'⭐'.repeat(c)}${'☆'.repeat(SQ.length-c)}</span></div>`};
-function vLobby(){const dr=S.daily.d!==today(),sf=S.scr!==today(),mr=Date.now()>=S.mini,bet=ROOMS[S.room].bets[S.bet[S.room]];view.innerHTML=`<div class="lob">
- <div class="promos"><button class="promo p1 ${dr?'rdy':''}" data-act="wheel"><i>${A('wheelicon')}</i><div>${gt('TAGESRAD')}<small>${dr?'Dein Gratis-Dreh wartet!':'Extra-Dreh: 10 Edelsteine'}</small><u>DREHEN</u></div></button>
- <button class="promo p4 ${mr?'rdy':''}" data-act="minibox"><i>${A('mini')}</i><div>${gt('MINI-PREIS')}<small id="mbt">${mr?'Bereit zum Öffnen!':''}</small><u>ÖFFNEN</u></div></button>
- <button class="promo p2 ${sf?'rdy':''}" data-act="scratch"><i>${A('ticket')}</i><div>${gt('RUBBELLOS')}<small>${sf?'Heute gratis!':'Los: '+fmt(base()*5)+' Münzen'}</small><u>RUBBELN</u></div></button>
- <button class="promo p3" data-act="deal"><i>${A('balloon')}</i><div>${gt('BALLON-DEAL')}<small>${dealM()>1?'×'+String(dealM()).replace('.',',')+' aktiv!':'Platz einen Ballon!'}</small><u>ZUM DEAL</u></div></button></div>
- <div class="host" data-act="tip"><i>${A('crest')}</i><div class="bub" id="bub">${lastSay}</div></div>
- <div class="rooms">${ROOMS.map((r,i)=>`<button data-act="room" data-i="${i}" class="${S.room===i?'on':''}">${r.e} ${r.n}${r.lock&&!hrOpen()?' 🔒':''}</button>`).join('')}</div>
- <div class="grp g1"><h3>${gt('BRANDHEISS!','hot')}</h3><div class="shelf">${SLOTS.slice(0,4).map(s=>tileH(s,bet)).join('')}</div></div>
- <div class="grp g2"><h3>${gt('FAVORITEN','fav')}</h3><div class="shelf">${SLOTS.slice(4).map(s=>tileH(s,bet)).join('')}</div></div>
- <button class="collect" data-act="hourly" id="hbtn">${A('clock')}<b>STUNDENBONUS</b><span id="hb"></span></button></div>`;
- $$('canvas[data-tile]').forEach(cv=>{cv.width=Math.round(150*DPR);cv.height=Math.round(214*DPR);drawTile(cv,SLOTS.find(s=>s.id===cv.dataset.tile))});tick()}
-function tick(){const d=S.hour+36e5-Date.now(),t=d<=0?'BEREIT!':Math.floor(d/6e4)+':'+String(Math.floor(d/1e3)%60).padStart(2,'0'),el=$('#hb');if(el){el.textContent=t;$('#hbtn').classList.toggle('rdy',d<=0)}
- const h2=$('#hb2');if(h2&&h2.textContent!==t){h2.textContent=t;$('#dealb').classList.toggle('rdy',d<=0)}const mb=$('#mbt');if(mb){const m=S.mini-Date.now();mb.textContent=m<=0?'Bereit zum Öffnen!':'Öffnet in '+Math.floor(m/36e5)+'h '+Math.floor(m/6e4)%60+'m'}if(cur&&!cur.busy)side()}
+function tick(){const d=S.hour+36e5-Date.now(),t=d<=0?'Bereit':Math.floor(d/6e4)+':'+String(Math.floor(d/1e3)%60).padStart(2,'0'),el=$('#hb');if(el){el.textContent=t;$('#hbtn').classList.toggle('rdy',d<=0);const g=$('#hbgo');if(g)g.disabled=d>0}
+ const lb=$('#lbt');if(lb)lb.textContent=d<=0?'Stundenbonus bereit!':'Nächster Stundenbonus in '+t;const mb=$('#mbt');if(mb){const m=S.mini-Date.now();mb.textContent=m<=0?'Bereit zum Öffnen!':'Öffnet in '+Math.floor(m/36e5)+'h '+Math.floor(m/6e4)%60+'m'}
+ if(!cur&&navDraw.br!==bonusReady())navDraw();if(cur&&!cur.busy)side()}
 setInterval(tick,1000);
 /* ---------- pages ---------- */
 function vQuests(){view.innerHTML=`<div class="pg"><h2>${gt('TAGES-QUESTS')}</h2>${S.q.l.map((q,j)=>`<div class="row"><i class="ri">${A(['target','scroll','star'][j])}</i><div><b>${QT[q.i].t(q.n)}</b><div class="bar"><i style="width:${q.p/q.n*100}%"></i><em>${q.p}/${q.n}</em></div><small>🪙 ${fmt(qRew(j))} · +150 Pass-Punkte${j===2?' · 🃏':''}</small></div>${q.c?A('check','ok'):`<button class="gbtn sm" data-act="qclaim" data-j="${j}" ${q.p<q.n?'disabled':''}>HOLEN</button>`}</div>`).join('')}
@@ -99,7 +91,7 @@ function stageMin(){const w=cur&&cur.cfg.bonus&&cur.cfg.bonus.type==='wheel';ret
 function availReels(){const sl=$('.slot');return sl.clientHeight-($('.evt').offsetHeight+$('.sbar').offsetHeight+$('#msg').offsetHeight+stageMin()+16)}
 function layoutReels(rows){RE.unit=unit();reLayout(rows,availReels())}
 function openSlot(id,quiet){const cfg=SLOTS.find(s=>s.id===id);if(S.lvl<cfg.lvl){SFX.no();toast(`🔒 ${cfg.name} öffnet ab Level ${cfg.lvl}`);return}if(!quiet&&GFX.ready&&FX.spr)starSwirl(1000).then(()=>{if($('#ovl').classList.contains('swirl'))ovHide()});
- const st=S.st[id]||(S.st[id]=newSt());if(!st.pig)st.pig=[0,0,0];cur={cfg,st,busy:false,auto:false,turbo:false,win:0,bm:1,fs:null};tab='slot';navDraw();sceneURL(id);
+ const st=S.st[id]||(S.st[id]=newSt());if(!st.pig)st.pig=[0,0,0];cur={cfg,st,busy:false,auto:false,turbo:false,win:0,bm:1,fs:null};S.last=id;tab='slot';navDraw();sceneURL(id);
  $('#app').className='inslot sc-'+id;const wheelTop=cfg.bonus&&cfg.bonus.type==='wheel';
  view.innerHTML=`<div class="slot"><div class="evt" data-act="go" data-t="rank"><div class="pool">🏆<b>WOCHEN-POOL</b><span id="evt"></span></div><div class="pls" id="evr"></div></div>
  <div class="stage" data-min="${wheelTop?150:120}"><div class="jps" id="jps"></div><div class="rail" id="rail"></div><div class="extra" id="extra"></div>
@@ -144,7 +136,7 @@ function side(){const C=cur;if(!C||!$('#extra'))return;const cfg=C.cfg;let h='';
  if(!C.busy&&cfg.coin&&Date.now()>(C.msgT||0)){const ks=Object.keys(JP).filter(k=>cfg.hs||k!=='grand'),k=ks[Math.floor(Date.now()/2500)%ks.length],m=$('#msg'),h2=`<i class="t${k}">${k.toUpperCase()}</i> ${fmtFull(JP[k]*unit())}`;if(m&&m._h!==h2){m._h=h2;m.innerHTML=h2}}
  $('#bet').textContent=fmtFull(curBet());$('#turbob').classList.toggle('on',!!C.turbo);spinBtn()}
 /* ---------- overlay building blocks ---------- */
-function shake(px,ms){const a=$('#app');a.style.setProperty('--sk',px+'px');a.classList.remove('shk');void a.offsetWidth;a.classList.add('shk');clearTimeout(shake.t);shake.t=setTimeout(()=>a.classList.remove('shk'),ms||450)}
+function shake(px,ms){if(S.lessfx)px=Math.min(px,3);const a=$('#app');a.style.setProperty('--sk',px+'px');a.classList.remove('shk');void a.offsetWidth;a.classList.add('shk');clearTimeout(shake.t);shake.t=setTimeout(()=>a.classList.remove('shk'),ms||450)}
 const WMAP={'GEWINN':'w-gewinn','BIG WIN':'w-big','SUPER WIN':'w-super','MEGA WIN':'w-mega','EPIC WIN':'w-epic','LEGENDÄR':'w-leg','FREISPIELE':'w-free','GEWONNEN!':'w-won','BONUS!':'w-bonus','LETZTER SPIN!':'w-last','NEUE REIHE!':'w-row','FEATURE KOMPLETT':'w-done','JACKPOT!':'w-jackpot','GLÜCKSRAD':'w-wheel','AUSWAHL-BONUS':'w-pick','UPGRADE!':'w-tier','TAGESBONUS':'w-daily','GLÜCKWUNSCH!':'w-congr','EINSAMMELN':'w-collect','START':'w-start','GRAND':'w-grand','MAJOR':'w-major','MINOR':'w-minor','MINI':'w-mini'};
 function TT(t,cls,fit){return WMAP[t]&&GFX.url[WMAP[t]]?WT(WMAP[t],cls):gt(t,cls,fit)}
 let OVN=0;
@@ -175,9 +167,9 @@ async function triggerSeq(cells){const C=cur,tb=C.turbo;if(!cells.length)return;
  SFX.bonusHit();shake(9,550);const rc=reRect();fxFlash(rc.left+rc.width/2,rc.top+rc.height/2,rc.width,{life:.5});cells.forEach(c=>{const[x,y]=reCellCenter(c[0],c[1]);fxExplode(x,y)});
  await banner(WT('w-bonus','bnimg'),tb?900:1700,'img');RE.spot=null}
 /* drumroll suspense before a big reveal */
-async function suspense(el,ms){SFX.roll(ms/1000);fadeMusic(.08,300);const t0=performance.now();el&&el.classList.add('sus');await sleep(ms);el&&el.classList.remove('sus');fadeMusic(.38,600)}
+async function suspense(el,ms){SFX.roll(ms/1000);fadeMusic(.08*mvol(),300);const t0=performance.now();el&&el.classList.add('sus');await sleep(ms);el&&el.classList.remove('sus');fadeMusic(.38*mvol(),600)}
 /* celebration: suspense, tiered count-up with escalating effects, then collect */
-function celebrate(total,o){o=o||{};return new Promise(async res=>{const C=cur,bet=o.bet||(C&&C.busy&&C.bet?C.bet:ROOMS[S.room].bets[S.bet[S.room]]),ratio=total/bet,tiers=TIERS.filter(t=>ratio>=t[0]),auto=(C&&C.auto)||o.auto;
+function celebrate(total,o){o=o||{};return new Promise(async res=>{vib([60,40,120]);const C=cur,bet=o.bet||(C&&C.busy&&C.bet?C.bet:ROOMS[S.room].bets[S.bet[S.room]]),ratio=total/bet,tiers=TIERS.filter(t=>ratio>=t[0]),auto=(C&&C.auto)||o.auto;
  const el=ovShow('cel',`<div class="rays"></div><div class="celbox">${slotFx('cel')}<div class="ctitle">${TT(o.title||'GEWINN','',62)}</div><div class="cnum">${gt(tiers.length||o.roll?'? ? ?':'0','num',58)}</div><div class="csub">${o.sub||''}</div><button class="gbtn hide" id="ccol">${o.collect?WT('w-collect','bt'):'WEITER'}</button></div>`);
  const ttl=el.querySelector('.ctitle'),num=el.querySelector('.cnum .gt');
  if(tiers.length||o.roll){await suspense(el.querySelector('.cnum'),(C&&C.turbo)?700:tiers.length>2?2100:1500)}
@@ -308,9 +300,9 @@ async function dailyWheel(){if(cur&&cur.busy)return;const free=S.daily.d!==today
  const num=e2.querySelector('.dtot .gt');await suspense(e2.querySelector('.dtot'),1500);const t1=performance.now();await new Promise(res=>{const f=n=>{const u=Math.min(1,(n-t1)/1800),e=1-Math.pow(1-u,3);setGt(num,fmtFull(total*e));if(u<1){if(Math.random()<.3)SFX.count(u);requestAnimationFrame(f)}else res()};requestAnimationFrame(f)});
  SFX.big();shake(10,600);fxCoinBlast(24);fxRain(60);const bt=e2.querySelector('#dcol');bt.classList.remove('hide');bt.classList.add('pulse');await waitTap(bt,0);S.coins+=total;HUD.lock=1;SFX.collect();
  const[bx,by]=elCenter(bt),[tx,ty]=elCenter('#coinpill');fxFly(bx,by,tx,ty,40,{onHit:i=>{if(i===1){HUD.lock=0;tweenCoins(S.coins,1500)}if(i%4===0)SFX.coin()}});await sleep(900);await ovHide();HUD.lock=0;
- say(`Serien-Bonus ×${sm.toFixed(2).replace('.',',')} – morgen wird es noch mehr!`);hud();save();if(!cur)vLobby()}
-function hourly(){if(Date.now()<S.hour+36e5){SFX.no();toast('Der Stundenbonus lädt noch.');return}const c=Math.round(base()*1.5*vipM()*petM());S.coins+=c;S.hour=Date.now();SFX.collect();const b=$('#hbtn')||$('#dealb'),[x,y]=elCenter(b),[tx,ty]=elCenter('#coinpill');HUD.lock=1;
- fxFountain(x,y,20,{v:420});fxFly(x,y,tx,ty,18,{onHit:i=>{if(i===1){HUD.lock=0;tweenCoins(S.coins,900)}if(i%3===0)SFX.coin()}});toast(`⏰ +${fmt(c)} 🪙`);save();tick();if(!cur)setTimeout(vLobby,1200)}
+ say(`Serien-Bonus ×${sm.toFixed(2).replace('.',',')} – morgen wird es noch mehr!`);hud();save();rerender()}
+function hourly(){if(Date.now()<S.hour+36e5){SFX.no();toast('Der Stundenbonus lädt noch.');return}const c=Math.round(base()*1.5*vipM()*petM());S.coins+=c;S.hour=Date.now();SFX.collect();const b=$('#hbgo')||$('#hbtn')||$('#coinpill'),[x,y]=elCenter(b),[tx,ty]=elCenter('#coinpill');HUD.lock=1;
+ fxFountain(x,y,20,{v:420});fxFly(x,y,tx,ty,18,{onHit:i=>{if(i===1){HUD.lock=0;tweenCoins(S.coins,900)}if(i%3===0)SFX.coin()}});toast(`⏰ +${fmt(c)} 🪙`);save();tick();setTimeout(rerender,1200)}
 function miniBox(){if(Date.now()<S.mini){toast('Der Mini-Preis lädt noch.');return}const P=[['c',3],['c',6],['g',5],['p',1],['t',3],['c',12]],pr=P[ri(P.length)];S.mini=Date.now()+4*36e5;
  modal(`<h2>${gt('MINI-PREIS')}</h2><div class="box3"><div class="mbx" id="mbx">${A('mini')}</div></div><p id="mbr">Tippe auf das Geschenk!</p><button class="gbtn hide" id="mbc" data-act="closelobby">EINSAMMELN</button>`,1,'minim');save();
  $('#mbx').onclick=()=>{const b=$('#mbx');if(b.dataset.o)return;b.dataset.o=1;b.classList.add('shake');SFX.shake();setTimeout(()=>{b.classList.remove('shake');b.classList.add('open');SFX.burst();const[x,y]=elCenter(b);fxFlash(x,y,200);fxStars(x,y,16);let t='';
@@ -335,9 +327,6 @@ function store(){const dm=dealM();modal(`<h2>${gt('MÜNZ-SHOP')}</h2><p class="s
  <div class="shop">${SHOP.map((s,i)=>`<button data-act="buy" data-i="${i}" class="${i===3?'best':''}">${i===3?'<em>BESTER WERT</em>':''}<i>${A(s[4])}</i><span>${s[0]}</span><b>${fmt(s[2]*base()*vipM()*dm)}</b><small>+${s[3]*5} 💎</small><u>${s[1]}</u></button>`).join('')}</div>
  <h2>${gt('EDELSTEIN-SHOP','cy')}</h2><div class="shop">${[['boost','rocket','Win-Booster','+50% · 30 Min',20],['pack','cards','Kartenpack','3 Karten',15],['treat','polish','Poliersteine','5 Stück',10],['free','gift','Geschenk',fmt(base()*2)+' 🪙',0]].map(g=>`<button data-act="gbuy" data-k="${g[0]}"><i>${A(g[1])}</i><span>${g[2]}</span><b>${g[3]}</b><u>${g[4]} 💎</u></button>`).join('')}</div>`,0,'shopm')}
 function info(){const cfg=cur.cfg,u=unit();modal(`<h2>${gt(cfg.name.toUpperCase())}</h2><p>${cfg.info}</p><div class="pay">${cfg.syms.map(s=>`<div><i>${A(assetFor(cfg,s[0]))}</i>${[5,4,3].map(n=>`<span><b>${n}×</b> ${fmt(s[n-1]*(cfg.bm||1)*u)}</span>`).join('')}</div>`).join('')}</div><p class="small">Werte beim aktuellen Einsatz${cfg.ev==='ways'?' je Gewinnweg ('+Math.pow(cfg.rows,5)+' Wege)':' je Linie (20 Linien)'}. Feste Auszahlungsquote ca. 96 % – per Simulation über Millionen Drehs eingestellt. Jeder Dreh ist unabhängig und hat immer dieselben Chancen; Einsatz, Raum, Level oder Kontostand ändern daran nichts. Die Spannungs-Animationen (z. B. länger drehende Walzen) reagieren nur auf bereits gelandete Symbole und verraten nichts. Nur der sichtbare Win-Booster erhöht Gewinne um 50 %.</p>`)}
-function settings(){modal(`<h2>${gt('EINSTELLUNGEN')}</h2><div class="row"><i class="ri">${A('sound')}</i><div><b>Soundeffekte</b></div><button class="gbtn sm ${S.snd?'':'off'}" data-act="tsnd">${S.snd?'AN':'AUS'}</button></div><div class="row"><i class="ri">${A('sound')}</i><div><b>Musik</b></div><button class="gbtn sm ${S.mus?'':'off'}" data-act="tmus">${S.mus?'AN':'AUS'}</button></div>
- <div class="row"><i class="ri">${A('info')}</i><div><b>Ton-Test</b><br><small>Spielt einen Klang und zeigt, ob das Gerät Audio zulässt.</small></div><button class="gbtn sm blue" data-act="sndtest">TEST</button></div><p class="small" id="sndi"></p>
- <button class="gbtn purple" data-act="debug">DEBUG-MENÜ</button>`)}
 function debug(){const B=(k,t)=>`<button data-act="dbg" data-k="${k}">${t}</button>`,C=cur;
  modal(`<h2>${gt('DEBUG-MENÜ')}</h2>${C?`<h3>Features · ${C.cfg.name}</h3><div class="dbg">${C.cfg.hs?B('fhs','Hold & Spin auslösen'):''}${B('ffs','Freispiele auslösen')}${C.cfg.bonus?B('fbo','Bonus auslösen'):''}${B('big','Big-Win-Animation')}${B('ant','Antizipation testen')}${B('rtp','Quote testen')}</div>`:'<p class="small">Öffne einen Slot, um Features auszulösen und die Quote zu testen.</p>'}<p id="dbgo" class="small"></p>
  <h3>Guthaben</h3><div class="dbg">${B('c','+1 Mrd Münzen')+B('c2','+1 Bio Münzen')+B('c0','Konto leeren')+B('g','+100 Edelsteine')}</div>
@@ -347,9 +336,9 @@ function debug(){const B=(k,t)=>`<button data-act="dbg" data-k="${k}">${t}</butt
  <h3>Anzeige</h3><div class="dbg">${B('fx','Münzregen testen')+B('sp','Startbildschirm zeigen')}</div>
  <h3>Spielstand</h3><textarea id="dbgt" placeholder="Spielstand hier einfügen, dann »Laden«"></textarea><div class="dbg">${B('ex','Exportieren')+B('im','Laden')+B('r','Alles löschen')}</div>`)}
 /* ---------- actions ---------- */
-const ACT={close:closeM,closelobby(){closeM();if(!cur)vLobby()},go:t=>go(t.dataset.t),tip(){say(TIPS[1+ri(TIPS.length-1)])},
+const ACT={close:closeM,closelobby(){closeM();rerender()},go:t=>go(t.dataset.t),tip(){say(TIPS[1+ri(TIPS.length-1)])},
  slot:t=>openSlot(t.dataset.id),room(t){const i=+t.dataset.i;if(ROOMS[i].lock&&!hrOpen()){SFX.no();toast('👑 High Roller öffnet ab Level 10 oder VIP Silber');return}S.room=i;say(i===2?'Willkommen bei den High Rollern – hier fließt das Gold!':i===0?'Low Roller: entspannt drehen mit kleinen Einsätzen.':'Classic-Raum: die goldene Mitte.');vLobby();save()},
- wheel:dailyWheel,hourly,scratch,store,info,settings,minibox:miniBox,deal:dealPop,
+ wheel:dailyWheel,hourly,scratch,store,info,minibox:miniBox,deal:dealPop,
  spin(){const C=cur;if(!C)return;if(C.hold){C.hold=false;return}if(C.auto){C.auto=false;spinBtn();return}if(C.busy){if(C.spinning)C.quick=true;else C.skip=true;return}doSpin()},helpi(){if(cur)info();else ACT.tip()},
  betm(){if(cur.busy)return;S.bet[S.room]=Math.max(0,S.bet[S.room]-1);RE.unit=unit();side()},betp(){if(cur.busy)return;S.bet[S.room]=Math.min(ROOMS[S.room].bets.length-1,S.bet[S.room]+1);RE.unit=unit();side()},
  max(){if(cur.busy)return;const b=ROOMS[S.room].bets;let i=b.length-1;while(i>0&&b[i]>S.coins)i--;S.bet[S.room]=i;RE.unit=unit();side();toast('🔥 Max Bet: '+fmt(b[i]))},
@@ -360,7 +349,7 @@ const ACT={close:closeM,closelobby(){closeM();if(!cur)vLobby()},go:t=>go(t.datas
  feed(){const p=S.pet;if(p.treats<1)return;p.treats--;p.xp++;SFX.coin();const pb=$('.petb');if(pb){const[x,y]=elCenter(pb);fxStars(x,y,8);fxGlints(pb.getBoundingClientRect(),5)}if(p.xp>=p.lvl*3){p.xp=0;p.lvl++;toast(`🐉 Glücksjuwel Stufe ${p.lvl} · Bonus +${p.lvl*2}%`);fxRain(30);SFX.bonus()}save();setTimeout(()=>go('pet'),300)},
  pclaim(t){const i=+t.dataset.i;if(S.pass.c.includes(i)||i>=Math.floor(S.pass.pts/PT))return;S.pass.c.push(i);const r=passRew(i);if(r.g){S.gems+=r.g;S.packs++}else if(r.t)S.pet.treats+=r.t;else S.coins+=Math.round(base()*(4+i));SFX.collect();const[x,y]=elCenter(t);fxStars(x,y,10);save();setTimeout(()=>go('pass'),500)},
  buy(t){const s=SHOP[+t.dataset.i];modal(`<h2>${gt(s[0].toUpperCase())}</h2><div class="big-ic">${A(s[4])}</div><p>Simulierter Kauf für <b>${s[1]}</b>.<br>Es wird <b>kein echtes Geld</b> berechnet – das ist nur Spielgefühl.</p><button class="gbtn" data-act="buyok" data-i="${t.dataset.i}">KAUF SIMULIEREN</button><button class="gbtn grey" data-act="store">ZURÜCK</button>`)},
- buyok(t){const s=SHOP[+t.dataset.i],c=Math.round(s[2]*base()*vipM()*dealM());S.coins+=c;S.gems+=s[3]*5;S.vip+=s[3]*10;closeM();HUD.lock=1;save();celebrate(c,{title:'KA-CHING!',collect:true,bet:base()*s[2]/12,sub:`+${s[3]*5} Edelsteine · +${s[3]*10} VIP-Punkte`}).then(()=>{HUD.lock=0;hud();if(cur)side();else if(tab==='lobby')vLobby()})},
+ buyok(t){const s=SHOP[+t.dataset.i],c=Math.round(s[2]*base()*vipM()*dealM());S.coins+=c;S.gems+=s[3]*5;S.vip+=s[3]*10;closeM();HUD.lock=1;save();celebrate(c,{title:'KA-CHING!',collect:true,bet:base()*s[2]/12,sub:`+${s[3]*5} Edelsteine · +${s[3]*10} VIP-Punkte`}).then(()=>{HUD.lock=0;hud();if(cur)side();else rerender()})},
  gbuy(t){const k=t.dataset.k,cost={boost:20,pack:15,treat:10,free:0}[k];if(S.gems<cost){SFX.no();toast('Nicht genug 💎');return}S.gems-=cost;if(k==='boost'){S.boost=Math.max(Date.now(),S.boost)+18e5;toast('🚀 Win-Booster aktiv: +50 % auf alle Gewinne')}else if(k==='pack'){S.packs++;toast('+1 Kartenpack')}else if(k==='treat'){S.pet.treats+=5;toast('+5 Poliersteine')}else{S.coins+=Math.round(base()*2);const[x,y]=elCenter(t);fxFountain(x,y,16)}SFX.win();hud();save();navDraw();if(cur)side();if(k!=='free')closeM();else store()},
  sound(){const on=!(S.snd||S.mus);S.snd=S.mus=on?1:0;save();hud();unlockAudio();music();if(on){SFX.win();setTimeout(()=>{if(!AC||AC.state!=='running')toast('Ton wird vom Gerät blockiert – Lautstärke und Stummschalter prüfen')},600)}},
  tsnd(){S.snd=S.snd?0:1;save();settings()},tmus(){S.mus=S.mus?0:1;if(S.mus)music();else{clearInterval(MU.timer);MU.timer=null}save();settings()},
@@ -379,7 +368,7 @@ const ACT={close:closeM,closelobby(){closeM();if(!cur)vLobby()},go:t=>go(t.datas
   else if(k==='ex'){const j=JSON.stringify(S);$('#dbgt').value=j;try{navigator.clipboard.writeText(j).then(()=>toast('Spielstand kopiert'),()=>{})}catch(e){}out('Spielstand steht im Textfeld – markieren und kopieren.');return}
   else if(k==='im'){try{const o=JSON.parse($('#dbgt').value);if(typeof o.coins!=='number')throw 0;S=Object.assign(def(),o);save();if(cur){reUnmount();cur=null}closeM();HUD.shown=null;go('lobby');toast('Spielstand geladen')}catch(e){out('Das ist kein gültiger Spielstand.')}return}
   else if(k==='r'){try{localStorage.removeItem(KEY)}catch(e){}S=def();if(cur){reUnmount();cur=null}closeM();HUD.shown=null;go('lobby');return}
-  hud();save();navDraw();tick();toast('Debug: erledigt');if(!cur&&tab==='lobby')vLobby();else if(cur)side()}};
+  hud();save();navDraw();tick();toast('Debug: erledigt');if(!cur)rerender();else side()}};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t){if(e.target.id==='modal'&&!e.target.dataset.lock)closeM();return}if(t.disabled)return;const a=ACT[t.dataset.act];if(a){if(t.dataset.act!=='spin')SFX.click();a(t)}});
 addEventListener('resize',()=>{if(cur&&!cur.busy&&RE.mode==='reels'){layoutReels(cur.cfg.rows);reSetGrid(RE.grid)}});
 let holdT=null;document.addEventListener('pointerdown',e=>{if(!e.target.closest('.spin')||!cur)return;const C=cur;clearTimeout(holdT);holdT=setTimeout(()=>{if(cur!==C||C.auto)return;C.auto=true;C.hold=true;setTimeout(()=>{C.hold=false},1200);toast('Auto-Spin an – tippen zum Stoppen');spinBtn();if(!C.busy)doSpin()},550)});
@@ -394,7 +383,7 @@ async function splash(again){const sp=$('#splash');sp.classList.remove('hide','o
   if(GFX.url['bg-donner-fs'])document.head.insertAdjacentHTML('beforeend',`<style>#app.fsmode.sc-donner .slot{background-image:url(${GFX.url['bg-donner-fs']})}</style>`);
   bar.style.width='100%';st.textContent='Alles bereit!';drawSplashLogo($('#splogo'))}
  await sleep(300);$('#spl').classList.add('hide');go_.classList.remove('hide');await waitTap(go_);unlockAudio();music('lobby');SFX.collect();fxFlash(innerWidth/2,innerHeight/2,innerWidth);sp.classList.add('out');await sleep(450);sp.classList.add('hide');if(!again)boot()}
-function boot(){periodic();HUD.shown=null;hud();go('lobby');$('#app').style.backgroundImage=`url(${SCENEURL.lobby})`;
+function boot(){hdrInit();periodic();HUD.shown=null;hud();go('lobby');$('#app').style.backgroundImage=`url(${SCENEURL.lobby})`;
  if(!S.seen){S.seen=1;save();modal(`<h2>${gt('WILLKOMMEN!')}</h2><div class="big-ic">${A('crest')}</div><p>Ich bin <b>Goldie</b> und begleite dich. Hier ist alles nur Spiel: keine Werbung, kein echtes Geld, und jeder Dreh hat immer dieselbe faire Chance.</p><div class="prize">🪙 5 Mio · 💎 30 · 🃏 1</div><button class="gbtn" data-act="close">LOS GEHT'S!</button>`)}
  else if(S.daily.d!==today())setTimeout(dailyWheel,600)}
 splash();
