@@ -22,7 +22,7 @@ Danach `dist/goldfuchs-casino.html` im Browser öffnen bzw. neu laden.
 | `src/index.html` | Grundgerüst der Seite mit Platzhaltern für CSS, Bilder und Skripte |
 | `src/styles/main.css` | Alle Styles |
 | `src/fonts/` | Schriften (Disp, Body, Num) |
-| `src/assets/img/` | 191 Grafiken als WebP (darunter Spritesheets `an-*` mit 6×4 Animationsbildern), `order.json` legt die Reihenfolge fest |
+| `src/assets/img/` | 192 Grafiken als WebP (darunter Spritesheets `an-*` mit 6×4 Animationsbildern), `order.json` legt die Reihenfolge fest |
 | `src/js/01-game.js` | Spiel-Logik: Slots, Gewinntabellen, Features, Rundenauflöser für die RTP-Kalibrierung |
 | `src/js/02-scale.js` | RTP-Skalierung pro Slot |
 | `src/js/03-gfx.js` | Grafik-Runtime: 3D-Schriftzüge, gemalte Szenen |
