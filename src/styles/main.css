@@ -456,3 +456,11 @@ body.lessfx .gbtn.pulse,body.lessfx .bsq.rdy .pbtn,body.lessfx .bbar.rdy .gold,b
 #wres.pop{animation:tpop .55s cubic-bezier(.2,1.6,.4,1)}
 .picks button.hot{animation:shake .07s infinite alternate,hotglow .5s infinite alternate}
 @keyframes hotglow{from{filter:brightness(1) drop-shadow(0 0 0 #ffd23c)}to{filter:brightness(1.35) drop-shadow(0 0 14px #ffd23c)}}
+/* ===== V3-Paket ===== */
+.rh img.v3set{width:34px;height:47px;flex:none;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.mbx.v3chest img.art{width:170px;height:170px}.mbx.v3chest.open{opacity:1;transform:scale(1.08)}
+.picks button img.art{object-fit:contain}
+.v3fx{position:fixed;pointer-events:none;z-index:9000}
+.v3wolf{position:absolute;left:50%;top:44%;width:min(70vw,330px);height:min(70vw,330px);transform:translate(-62%,-50%);z-index:2}
+.v3wolf img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(0,0,0,.6));transition:transform .25s}
+.v3wolf.blow img{transform:scale(1.08) translateX(-4%)}

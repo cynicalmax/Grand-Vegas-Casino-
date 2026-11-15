@@ -116,6 +116,7 @@ function setTheme(th){const k=SONGS[th]?th:THEME_OF[th]||'lobby';MU.want=k;if(!M
 function fadeMusic(to,ms){if(!GR||!AC)return;const g=GR.mbus.gain,t=AC.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(to,t+(ms||300)/1000)}
 function duck(ms){if(!GR||!S.mus)return;fadeMusic(.16*mvol(),90);clearTimeout(MU.dk);MU.dk=setTimeout(()=>fadeMusic(.38*mvol(),600),ms||900)}
 function tension(on){MU.tension=!!on}
+function musicOff(){clearInterval(MU.timer);MU.timer=null}
 /* ---- sound effects ---- */
 const sfx=fn=>function(){if(!S.snd)return;const a=ac();if(!a)return;try{fn(a.currentTime+.005,GR.sbus,...arguments)}catch(e){}};
 function tone(f,d,type,v,when){if(!S.snd)return;const a=ac();if(!a)return;try{vo(type||'sine',f,a.currentTime+(when||0),d,v||.08,GR.sbus)}catch(e){}}
