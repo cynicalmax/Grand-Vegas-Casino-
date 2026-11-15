@@ -162,7 +162,9 @@ async function meteorIntro(){const C=cur,tb=C&&C.turbo,el=ovShow('meteor','<canv
   if(u<1)requestAnimationFrame(f);else res()};requestAnimationFrame(f)});SFX.stopBig();shake(14,600)}
 async function signIntro(o){const C=cur;const el=ovShow('intro',`<div class="rays"></div><div class="sign"><div class="sgi"><b>${o.l1}</b><b>${o.l2}</b></div></div>${o.sub?`<p class="isub">${o.sub}</p>`:''}<button class="gbtn pulse" id="igo">${o.btn||'TIPPEN ZUM STARTEN'}</button>`);SFX.trigger();
  await sleep(700);await waitTap(el,C&&C.auto?2800:0);SFX.click();await ovHide()}
-async function triggerSeq(cells){const C=cur,tb=C.turbo;if(!cells.length)return;RE.spot=new Set(cells.map(c=>c[0]+','+c[1]));RE.spotT=RE.t;duck(2200);
+/* Bonusspiele: Turbo gilt nur im Grundspiel, Bonus-Abläufe laufen immer in voller Länge */
+const BONUS_TURBO=false;
+async function triggerSeq(cells){const C=cur,tb=C.turbo&&BONUS_TURBO;if(!cells.length)return;RE.spot=new Set(cells.map(c=>c[0]+','+c[1]));RE.spotT=RE.t;duck(2200);
  for(let k=0;k<3;k++){reFlash(cells);SFX.scatter(Math.min(5,2+k));cells.forEach(c=>{const[x,y]=reCellCenter(c[0],c[1]);fxRing(x,y,{s:10,s2:70+k*20});fxStars(x,y,4+k*2)});await sleep(tb?260:560)}
  SFX.bonusHit();shake(9,550);const rc=reRect();fxFlash(rc.left+rc.width/2,rc.top+rc.height/2,rc.width,{life:.5});cells.forEach(c=>{const[x,y]=reCellCenter(c[0],c[1]);fxExplode(x,y)});
  await banner(WT('w-bonus','bnimg'),tb?900:1700,'img');RE.spot=null}
@@ -189,46 +191,59 @@ function antiCount(g,c,id){let n=0;for(let i=0;i<c;i++)for(const s of g[i])if(s.
 function anticipate(cfg,g,c){if(c===0)return false;if(cfg.scat&&antiCount(g,c,'S')>=2)return true;if(cfg.bonus&&cfg.bonus.reels.includes(c)&&antiCount(g,c,'B')>=2)return true;
  if(cfg.coin&&cfg.coin.need&&c>=2&&antiCount(g,c,'C')>=cfg.coin.need-(cfg.coin.need>=6?2:1))return true;if(cfg.coll&&c===4&&antiCount(g,c,'C')>=3)return true;if(cfg.qh&&antiCount(g,c,'Z')>=4)return true;return false}
 function waitUntil(t,brk){return new Promise(res=>{const f=()=>{if(performance.now()>=t||brk())res();else setTimeout(f,16)};f()})}
-async function reelSpin(r,slow){const C=cur,cfg=C.cfg,tb=C.turbo&&!slow;C.quick=false;C.spinning=true;reStart(tb);SFX.spin();const t0=performance.now(),lands=[];let extra=0,sc=0;spinBtn();
- const b0=tb?320:(slow?1150:900),st=tb?110:(slow?360:300);
- for(let c=0;c<5;c++){await waitUntil(t0+b0+c*st+extra,()=>C.quick);
+async function reelSpin(r,slow){const C=cur,cfg=C.cfg,tb=C.turbo&&!slow;C.quick=false;C.spinning=true;RE.bonus=!!slow;reStart(tb);SFX.spin();const t0=performance.now(),lands=[];let extra=0,sc=0;spinBtn();
+ const b0=tb?320:(slow?1500:900),st=tb?110:(slow?650:300);
+ for(let c=0;c<5;c++){await waitUntil(t0+b0+c*st+extra,()=>C.quick);if(slow&&C.quick&&c)await sleep(260);
   if(!C.quick&&(anticipate(cfg,r.grid,c)||(C.forceAnt&&c>=3))){await Promise.all(lands);RE.antic[c]=1;tension(true);const add=tb?1300:2900;SFX.antic(add/1000+.2);duck(add+400);const ts=performance.now();
    await waitUntil(ts+add*.45,()=>C.quick);if(!C.quick)RE.cols[c].slow=6;await waitUntil(ts+add*.82,()=>C.quick);if(!C.quick)RE.cols[c].slow=3.2;await waitUntil(ts+add,()=>C.quick);extra+=add+(tb?80:200)}
-  const ci=c,ant=RE.antic[c];lands.push(reStop(ci,r.grid[ci],ant).then(()=>{RE.antic[ci]=0;if(ant){SFX.stopBig();shake(5,300)}else SFX.stop();const col=r.grid[ci],sp=[];col.forEach((s,ri)=>{if(s.s==='S'||s.s==='B'||(cfg.coin&&cfg.coin.need&&s.s==='C')||s.s==='H'||s.s==='Z')sp.push([ci,ri])});
-   if(sp.length){sc+=sp.length;reFlash(sp);sp.forEach(p=>{const[x,y]=reCellCenter(p[0],p[1]);fxGlints({left:x-20,top:y-20,width:40,height:40},2,{spread:.15})});if(sp.some(p=>{const s=col[p[1]];return s.s==='S'||s.s==='B'})||sc>=3)SFX.scatter(Math.min(5,sc))}}))}
- await Promise.all(lands);tension(false);RE.antic=[0,0,0,0,0];RE.grid=r.grid;C.spinning=false;C.forceAnt=0;spinBtn()}
+  const ci=c,ant=RE.antic[c];lands.push(reStop(ci,r.grid[ci],ant?1:slow?2:0).then(()=>{RE.antic[ci]=0;if(ant){SFX.stopBig();shake(5,300)}else SFX.stop();const col=r.grid[ci],sp=[];col.forEach((s,ri)=>{if(s.s==='S'||s.s==='B'||(cfg.coin&&cfg.coin.need&&s.s==='C')||s.s==='H'||s.s==='Z')sp.push([ci,ri])});
+   if(sp.length){sc+=sp.length;reFlash(sp);sp.forEach(p=>{const[x,y]=reCellCenter(p[0],p[1]);fxGlints({left:x-20,top:y-20,width:40,height:40},2,{spread:.15})});if(sp.some(p=>{const s=col[p[1]];return s.s==='S'||s.s==='B'})||sc>=3)SFX.scatter(Math.min(5,sc))}
+   if(slow){const wl=[];col.forEach((s,ri)=>{if(s.s==='W')wl.push([ci,ri])});if(wl.length){reFlash(wl);wl.forEach(p=>{const[x,y]=reCellCenter(p[0],p[1]);fxRing(x,y,{s:8,s2:56,col:'#ffe27a'});const s=col[p[1]];if(s.m)fxText(x,y-RE.ch*.3,'×'+s.m,{size:28,life:1.2,vy:-35})})}}}))}
+ await Promise.all(lands);tension(false);RE.antic=[0,0,0,0,0];RE.grid=r.grid;RE.bonus=false;if(slow)await sleep(380);C.spinning=false;C.forceAnt=0;spinBtn()}
 function rollWin(add,ms){return new Promise(res=>{const C=cur,from=C.win,to=from+add,t0=performance.now();let lt=0;C.skip=false;const st=n=>{const u=C.skip?1:Math.max(0,Math.min(1,(n-t0)/ms));setWin(from+add*u);if(n-lt>65&&u<1){lt=n;SFX.count(u*.6)}if(u<1)requestAnimationFrame(st);else res()};requestAnimationFrame(st)})}
 async function collectAnim(r){const C=cur,g=r.grid,coins=[],cols=[];g.forEach((col,c)=>col.forEach((s,ri)=>{if(s.s==='C')coins.push([c,ri,s]);if(s.s==='H')cols.push([c,ri])}));if(!cols.length||!coins.length)return;
  msg('DER TRESOR SAMMELT EIN …');RE.spot=new Set(cols.concat(coins).map(c=>c[0]+','+c[1]));RE.spotT=RE.t;reFlash(cols);SFX.roll(.9);await sleep(C.turbo?300:900);let i=0;
  for(const k of cols)for(const cc of coins){const[x0,y0]=reCellCenter(cc[0],cc[1]),[x1,y1]=reCellCenter(k[0],k[1]);fxFly(x0,y0,x1,y1,1,{s:34,dur:.5,onHit:()=>{SFX.ding(i++);fxRing(x1,y1,{s:8,s2:50});shake(3,150)}});await sleep(C.turbo?80:240)}await sleep(700);RE.spot=null}
 async function showWins(r){const C=cur;if(!r.wins.length){if(r.fx.sc)reShowWins([],r.fx.sc);return 0}
  if(C.cfg.coll&&r.wins.some(w=>w.label==='Tresor geleert'))await collectAnim(r);
- reShowWins(r.wins,r.fx.sc);const a=pay(r.win),ratio=a/C.bet,lab=r.wins.length===1?r.wins[0].label:null;msg(`${lab?lab.toUpperCase()+' · ':''}GEWINN <b>${fmt(a)}</b>`);
+ reShowWins(r.wins,r.fx.sc);if(C.fs)await winWalk(r);const a=pay(r.win),ratio=a/C.bet,lab=r.wins.length===1?r.wins[0].label:null;msg(`${lab?lab.toUpperCase()+' · ':''}GEWINN <b>${fmt(a)}</b>`);
  (ratio>=4?SFX.winMed:ratio>=1?SFX.win:SFX.coin)();const rc=reRect();if(ratio>=2)fxFountain(rc.left+rc.width/2,rc.top+rc.height*.6,Math.min(80,10+Math.round(ratio*3)),{w:rc.width*.7,bars:ratio>=5?.1:0});if(ratio>=1)fxGlints(rc,Math.min(22,4+Math.round(ratio*2)),{spread:.9});if(ratio>=5)shake(4,300);
  await rollWin(a,ratio<1?450:ratio<3?900:ratio<10?1500:1900);if(C.fs){C.fs.t+=a;side()}return a}
+/* Freispiele: jeden Gewinn einzeln zeigen (Linie/Felder + Betrag), damit man sieht, wo er liegt. Antippen überspringt. */
+async function winWalk(r){const C=cur,w=RE.win;if(!w)return;C.skip=false;w.man=1;const n=r.wins.length,per=n>6?560:n>3?800:1000;await sleep(n>1?700:300);
+ for(let i=0;i<n&&!C.skip;i++){const wn=r.wins[i],a=pay(wn.amt);w.idx=n>1?i:-1;let sx=0,sy=0;for(const c of wn.cells){const[x,y]=reCellCenter(c[0],c[1]);sx+=x;sy+=y}
+  fxText(sx/wn.cells.length,sy/wn.cells.length,'+'+fmt(a),{size:30,life:1.1,vy:-45});SFX.ding(i+3);msg(`${wn.label?wn.label.toUpperCase()+' · ':''}GEWINN ${n>1?(i+1)+'/'+n+' ':''}<b>${fmt(a)}</b>`);await sleep(per)}
+ w.idx=-1;C.skip=false}
 /* ---------- hold & spin ---------- */
 function hsKeys(H){const o=[];for(let c=0;c<5;c++)for(let r=H.M-H.open;r<H.M;r++)o.push([c,r]);return o}
 function hsBar(H,sum,hidden){const lamps=[0,1,2].map(i=>`<i class="${i<H.left?'on':''}${H.left===1&&!H.done?' red':''}"></i>`).join('');let cnt=0;for(const col of H.cells)for(const x of col)if(x)cnt++;
  const un=cur.cfg.hs.unlock,nx=un&&H.open<H.M?un[H.open-cur.cfg.rows]-cnt:0;setH('#hsbar',`<div class="rs"><small>RESPINS</small><span>${lamps}</span></div><div class="sm"><small>SUMME</small><b>${hidden?'? ? ?':fmt(sum)}</b></div>${nx>0?`<div class="un"><small>NEUE REIHE</small><b>NOCH ${nx}</b></div>`:''}`)}
-async function runHs(H,o){o=o||{};const C=cur,cfg=C.cfg,tb=C.turbo,nm=cfg.hs.nm||(cfg.hs.upgrade?['BAU','BONUS']:cfg.hs.maxRows?['GLUT','KETTE']:['RUBIN','LINK']),builder=!!cfg.hs.upgrade,fire=!!cfg.hs.maxRows,hero=symKey({s:'C',v:1},0);
+async function runHs(H,o){o=o||{};const C=cur,cfg=C.cfg,tb=C.turbo&&BONUS_TURBO,nm=cfg.hs.nm||(cfg.hs.upgrade?['BAU','BONUS']:cfg.hs.maxRows?['GLUT','KETTE']:['RUBIN','LINK']),builder=!!cfg.hs.upgrade,fire=!!cfg.hs.maxRows,hero=symKey({s:'C',v:1},0);
  if(o.intro!==false){if(fire)await meteorIntro();else await cine(hero);await signIntro({l1:nm[0],l2:nm[1],sub:'3 Respins – jeder neue Treffer setzt sie zurück.'+(cfg.hs.sub?' '+cfg.hs.sub:'')+(builder?' Treffer bauen und werten Häuser auf!':fire?' Ab 8, 12, 16, 20 Kugeln öffnen sich neue Reihen!':''),btn:'START'})}
  setTheme('feature');reClearWins();reSetHS(H);layoutReels(H.open);$('#hsbar').classList.remove('hide');H.left=3;
  const vis=()=>hsKeys(H).filter(([c,r])=>H.cells[c][r]),val=(c,r)=>{const s=H.cells[c][r];return s?pay(s.v||0):0};let sum=0;
  const land=async(k,offR)=>{const[c,r]=k.split(',').map(Number),[x,y]=reCellCenter(c,r-offR);if(fire){RE.hide.add(k);SFX.meteor();await fxMeteor(x+(R()-.5)*160,-60,x,y,{dur:tb?.32:.55,s:Math.max(40,RE.ch*.9)});RE.hide.delete(k);shake(4,200)}else{RE.hide.delete(k);fxBurst(x,y,10,{v:240});fxRing(x,y,{s:8,s2:60})}RE.pop.set(k,RE.t);SFX.coinLand()};
+ const hit=async(k,offR)=>{const[c,r]=k.split(',').map(Number),s=H.cells[c][r];if(!s||s.d)return;RE.focus={k,t:RE.t,d:tb?.5:s.j?1.5:1.05,col:s.j?'#ff9cff':'#ffd860'};const[x,y]=reCellCenter(c,r-offR);
+  fxText(x,y-RE.ch*.45,s.j?s.j.toUpperCase():builder?'NEU!':'+'+fmt(val(c,r)),{size:s.j?30:24,style:s.j?JPST[s.j]:'gold',life:1.3,vy:-28});if(s.j){SFX.tier();shake(6,350)}else SFX.ding(6);await sleep(tb?120:s.j?1400:900)};
  const off0=H.M-H.open;for(const[c,r]of vis()){const k=c+','+r;if(fire)RE.hide.add(k)}for(const[c,r]of vis()){await land(c+','+r,off0);sum+=val(c,r);hsBar(H,sum,builder);await sleep(tb?40:fire?60:140)}
- while(!H.done){await sleep(tb?300:650);const before=new Set(vis().map(k=>k.join(','))),empty=hsKeys(H).filter(([c,r])=>!H.cells[c][r]).map(k=>k.join(',')),o2=H.open,ev=hsStep(cfg,H),evk=ev.map(e=>e.join(',')),nw=evk.filter(k=>!before.has(k)),up=evk.filter(k=>before.has(k));
-  const offR=H.M-o2,last=H.left===1&&!H.done&&!ev.length;nw.forEach(k=>RE.hide.add(k));RE.spinSet=new Set(empty);SFX.spin();if(H.left<=1&&!ev.length){}await sleep(tb?420:950);
-  for(let c=0;c<5;c++){const colKeys=empty.filter(k=>+k.split(',')[0]===c);for(const k of colKeys){RE.spinSet.delete(k);if(nw.includes(k)){await land(k,offR);const[cc,rr]=k.split(',').map(Number),s=H.cells[cc][rr];
-     if(s.d){SFX.tier();const[x,y]=reCellCenter(cc,rr-offR);fxRing(x,y,{s:10,s2:200,col:'#ff7a2a'});shake(8,400);await banner(gt('REIHE ×2!','',40),1000,'img');}sum=vis().reduce((a,[c2,r2])=>a+val(c2,r2),0);hsBar(H,sum,builder);await sleep(tb?40:120)}}
-   if(colKeys.length){SFX.tick();await sleep(tb?30:140)}}
-  RE.spinSet=null;for(const k of up){RE.pop.set(k,RE.t);const[c,r]=k.split(',').map(Number),[x,y]=reCellCenter(c,r-offR);SFX.upgrade();fxStars(x,y,10);fxText(x,y-20,'UPGRADE!',{size:18,style:'green'});await sleep(tb?60:220)}
+ while(!H.done){msg(H.left===1?'LETZTER RESPIN!':`RESPIN · NOCH ${H.left}`);await sleep(tb?300:800);const lastCh=H.left===1,before=new Set(vis().map(k=>k.join(','))),empty=hsKeys(H).filter(([c,r])=>!H.cells[c][r]).map(k=>k.join(',')),o2=H.open,ev=hsStep(cfg,H),evk=ev.map(e=>e.join(',')),nw=evk.filter(k=>!before.has(k)),up=evk.filter(k=>before.has(k));
+  const offR=H.M-o2,last=H.left===1&&!H.done&&!ev.length;nw.forEach(k=>RE.hide.add(k));RE.spinSet=new Set(empty);SFX.spin();await sleep(tb?420:1300);const slowK=!tb&&(lastCh||empty.length<=3);
+  for(let c=0;c<5;c++){const colKeys=empty.filter(k=>+k.split(',')[0]===c);for(const k of colKeys){
+    if(slowK&&RE.spinSet.size<=2){RE.hsAnt=new Set(RE.spinSet);SFX.antic(1.2);duck(1500);await sleep(1100)}
+    RE.spinSet.delete(k);if(RE.hsAnt)RE.hsAnt.delete(k);if(nw.includes(k)){await land(k,offR);const[cc,rr]=k.split(',').map(Number),s=H.cells[cc][rr];
+     if(s.d){SFX.tier();const[x,y]=reCellCenter(cc,rr-offR);fxRing(x,y,{s:10,s2:200,col:'#ff7a2a'});shake(8,400);await banner(gt('REIHE ×2!','',40),1000,'img');}sum=vis().reduce((a,[c2,r2])=>a+val(c2,r2),0);hsBar(H,sum,builder);await hit(k,offR)}else if(slowK){SFX.tick();await sleep(150)}}
+   if(colKeys.length){SFX.tick();await sleep(tb?30:slowK?420:300)}}
+  RE.spinSet=null;RE.hsAnt=null;for(const k of up){RE.pop.set(k,RE.t);const[c,r]=k.split(',').map(Number),[x,y]=reCellCenter(c,r-offR);SFX.upgrade();RE.focus={k,t:RE.t,d:tb?.4:.9,col:'#8aff9a'};fxStars(x,y,10);fxText(x,y-20,'UPGRADE!',{size:20,style:'green'});await sleep(tb?60:550)}
   if(H.open>o2){layoutReels(H.open);SFX.fire();shake(10,600);const rc=reRect();fxFlash(rc.left+rc.width/2,rc.top+20,rc.width*.7,{col:'#ffb040'});fxEmbers(rc,40);await banner(WT('w-row','bnimg'),1400,'img')}
-  if(ev.length&&!H.done){SFX.reset()}const lst=H.left===1&&!H.done;RE.tension=lst;tension(lst);hsBar(H,sum,builder);if(lst){SFX.last();await banner(WT('w-last','bnimg'),tb?700:1300,'img')}}
+  if(ev.length&&!H.done){SFX.reset();msg(`${nw.length>1?nw.length+' TREFFER':'TREFFER'}! RESPINS WIEDER AUF 3`);await sleep(tb?0:400)}else if(!H.done&&!ev.length)msg(`KEIN TREFFER · NOCH ${H.left}`);const lst=H.left===1&&!H.done;RE.tension=lst;tension(lst);hsBar(H,sum,builder);if(lst){SFX.last();await banner(WT('w-last','bnimg'),tb?700:1300,'img')}}
  RE.tension=false;tension(false);hsBar(H,sum,builder);await sleep(400);SFX.bonus();await banner(WT('w-done','bnimg'),tb?800:1700,'img');
  if(H.grand){SFX.grand();shake(16,900);fxRain(160,{kinds:{coin:.65,bar:.25,gem:.1}});fxCoinBlast(40);await banner(WT('w-grand','bnimg')+WT('w-jackpot','bnimg'),3000,'img')}
- const order=vis();if(builder){msg('DIE HÄUSER WERDEN BEWERTET …');SFX.roll(1.2);await sleep(tb?300:1100);for(const[c,r]of order){RE.rev.set(c+','+r,RE.t);SFX.swirl();const[x,y]=reCellCenter(c,r-(H.M-H.open));fxGlints({left:x-20,top:y-20,width:40,height:40},3,{spread:.2});await sleep(tb?80:230)}await sleep(600)}
- msg('EINSAMMELN …');let acc=0,i=0;for(const[c,r]of order){const k=c+','+r,s=H.cells[c][r];RE.hl=k;acc+=val(c,r);const[x,y]=reCellCenter(c,r-(H.M-H.open)),[mx,my]=elCenter('#hsbar .sm b');fxFly(x,y,mx,my,1,{kind:'coin',s:28,dur:.45});SFX.ding(i++);hsBar(H,acc,false);
-  if(s.j){SFX.tier();shake(10,500);fxCoinBlast(16);await banner(WT('w-'+s.j,'bnimg')+WT('w-jackpot','bnimg'),1700,'img')}await sleep(tb?60:200)}
+ const order=vis();if(builder){msg('DIE HÄUSER WERDEN BEWERTET …');SFX.roll(1.2);await sleep(tb?300:1100);for(const[c,r]of order){const k=c+','+r,s=H.cells[c][r],big=!tb&&s.lvl>=2;if(big){RE.focus={k,t:RE.t,d:2.1,col:s.j?'#ff9cff':'#ffd860'};SFX.roll(.9);await sleep(950)}
+  RE.rev.set(k,RE.t);SFX.swirl();const[x,y]=reCellCenter(c,r-(H.M-H.open));fxGlints({left:x-20,top:y-20,width:40,height:40},3,{spread:.2});
+  await sleep(tb?40:200);fxText(x,y-RE.ch*.4,s.j?s.j.toUpperCase():'+'+fmt(val(c,r)),{size:big?30:20,style:s.j?JPST[s.j]:'gold',life:1.1,vy:-35});if(big){SFX.tier();shake(5,300)}await sleep(tb?40:big?1000:330)}await sleep(700)}
+ await sleep(tb?0:400);msg('EINSAMMELN …');let acc=0,i=0;for(const[c,r]of order){const k=c+','+r,s=H.cells[c][r];RE.hl=k;acc+=val(c,r);const[x,y]=reCellCenter(c,r-(H.M-H.open)),[mx,my]=elCenter('#hsbar .sm b');fxFly(x,y,mx,my,1,{kind:'coin',s:28,dur:.45});SFX.ding(i++);hsBar(H,acc,false);
+  if(val(c,r)&&!s.j)fxText(x,y-RE.ch*.3,'+'+fmt(val(c,r)),{size:18,life:.8,vy:-50});
+  if(s.j){SFX.tier();shake(10,500);fxCoinBlast(16);await banner(WT('w-'+s.j,'bnimg')+WT('w-jackpot','bnimg'),1700,'img')}await sleep(tb?60:order.length>20?230:340)}
  RE.hl=null;const total=pay(hsTotal(H));hsBar(H,total,false);await sleep(700);addFeatWin(total);
  await celebrate(total,{title:nm.join('-')+'-GEWINN',roll:true});C.celebrated=true;$('#hsbar').classList.add('hide');reSetReels();layoutReels(cfg.rows);reSetGrid(C.lastGrid||RE.grid);setTheme(cfg.id);return total}
 function addFeatWin(a){const C=cur;setWin(C.win+a);if(C.fs){C.fs.t+=a;side()}}
@@ -236,16 +251,16 @@ function addFeatWin(a){const C=cur;setWin(C.win+a);if(C.fs){C.fs.t+=a;side()}}
 function wheelOverlay(segs,idx,o){o=o||{};return new Promise(res=>{const C=cur,el=ovShow('wheel',`<div class="rays"></div><h2 class="wt">${TT(o.title||'GLÜCKSRAD','',46)}</h2><div class="wwrap"><canvas id="wcv"></canvas><div class="flap" id="flap"></div></div><p class="isub" id="wres">${o.sub||''}</p><button class="gbtn pulse" id="wgo">${WT('w-spin','bt')}</button>`),cv=el.querySelector('#wcv'),S0=Math.min(innerWidth*.9,420);
  cv.width=Math.round(S0*DPR);cv.height=Math.round(S0*DPR);cv.style.width=cv.style.height=S0+'px';const x=cv.getContext('2d'),n=segs.length,sg=6.2832/n;let ang=0,spin=false,hl=-1,raf=0,lastSeg=0,flap=0;
  const draw=()=>{x.setTransform(DPR,0,0,DPR,0,0);x.clearRect(0,0,S0,S0);drawWheel(x,S0/2,S0/2,S0*.48,segs,ang,{spin,hl});$('#flap').style.transform=`translateX(-50%) rotate(${flap}deg)`;flap*=.8;raf=requestAnimationFrame(draw)};draw();
- const go=()=>{if(spin)return;spin=true;el.querySelector('#wgo').classList.add('hide');SFX.whoosh();duck(9000);const f=.62+R()*.33,target=-(idx*sg-sg/2+f*sg),turns=(C&&C.turbo?4:7)*6.2832,A=turns+((target-ang)%6.2832+6.2832)%6.2832,a0=ang,D=C&&C.turbo?4200:8200,t0=performance.now();SFX.roll(D/1000*.9);
-  const st=now=>{const u=Math.min(1,(now-t0)/D),e=1-Math.pow(1-u,5);ang=a0+A*e;const sgi=Math.floor((ang+sg/2)/sg);if(sgi!==lastSeg){lastSeg=sgi;SFX.tick();flap=-28}
-   if(u<1)requestAnimationFrame(st);else{spin=false;hl=idx;SFX.winMed();shake(8,500);const r=cv.getBoundingClientRect();fxStars(r.left+r.width/2,r.top+r.height*.12,22);fxFlash(r.left+r.width/2,r.top+r.height*.15,180);fxExplode(r.left+r.width/2,r.top+r.height*.1,1);el.querySelector('#wres').innerHTML=o.result?o.result:'';fitAll(el);setTimeout(()=>{cancelAnimationFrame(raf);ovHide().then(res)},2600)}};requestAnimationFrame(st)};
+ const go=()=>{if(spin)return;spin=true;el.querySelector('#wgo').classList.add('hide');SFX.whoosh();duck(9000);const f=.62+R()*.33,target=-(idx*sg-sg/2+f*sg),turns=7*6.2832,A=turns+((target-ang)%6.2832+6.2832)%6.2832,a0=ang,D=8800,t0=performance.now();let zm=0;SFX.roll(D/1000*.9);
+  const st=now=>{const u=Math.min(1,(now-t0)/D),e=1-Math.pow(1-u,5);ang=a0+A*e;if(u>.6&&!zm){zm=1;el.querySelector('.wwrap').classList.add('zoom');tension(true)}const sgi=Math.floor((ang+sg/2)/sg);if(sgi!==lastSeg){lastSeg=sgi;SFX.tick();flap=-28}
+   if(u<1)requestAnimationFrame(st);else{spin=false;hl=idx;SFX.winMed();shake(8,500);const r=cv.getBoundingClientRect();fxStars(r.left+r.width/2,r.top+r.height*.12,22);fxFlash(r.left+r.width/2,r.top+r.height*.15,180);fxExplode(r.left+r.width/2,r.top+r.height*.1,1);tension(false);setTimeout(()=>{el.querySelector('#wres').innerHTML=o.result?o.result:'';el.querySelector('#wres').classList.add('pop');fitAll(el);SFX.tier()},800);setTimeout(()=>{cancelAnimationFrame(raf);ovHide().then(res)},3800)}};requestAnimationFrame(st)};
  el.querySelector('#wgo').onclick=go;if(C&&C.auto)setTimeout(go,1500)})}
 function pickOverlay(){return new Promise(res=>{const C=cur,b=pickBoard(),k=[0,0,0,0,0];let done=false;const el=ovShow('pick',`<div class="rays"></div><h2 class="wt">${TT('AUSWAHL-BONUS','',44)}</h2><p class="isub">Finde 3 gleiche – sie bestimmen deine Freispiele!</p><div class="picks">${b.map((x,i)=>`<button data-i="${i}">${A('gift')}</button>`).join('')}</div>`);
  const reveal=(t,p,dim)=>{t.classList.add('open');if(dim)t.classList.add('dim');t.innerHTML=`<b>${PICKS[p].n}</b><small>SPIELE</small><em>×${PICKS[p].xm}</em>`;t.className+=' c'+p};
- const pick=t=>{if(!t||done||t.disabled)return;t.disabled=true;t.classList.add('shake');SFX.shake();const cnt=k.reduce((a,b)=>a+Math.max(0,b-1),0);setTimeout(()=>{const p=b[+t.dataset.i];reveal(t,p);SFX.pop();const r=t.getBoundingClientRect();fxStars(r.left+r.width/2,r.top+r.height/2,6);k[p]++;
+ const pick=t=>{if(!t||done||t.disabled)return;t.disabled=true;t.classList.add('shake');SFX.shake();const hot=!(C&&C.turbo&&BONUS_TURBO)&&k.some(v=>v===2);if(hot){t.classList.add('hot');SFX.roll(1.3)}const cnt=k.reduce((a,b)=>a+Math.max(0,b-1),0);setTimeout(()=>{const p=b[+t.dataset.i];reveal(t,p);SFX.pop();const r=t.getBoundingClientRect();fxStars(r.left+r.width/2,r.top+r.height/2,6);k[p]++;
   if(k[p]===2){$$('.picks .c'+p).forEach(e=>e.classList.add('two'));SFX.scatter(2)}
-  if(k[p]>=3){done=true;$$('.picks .c'+p).forEach(e=>e.classList.add('win'));SFX.trigger();setTimeout(()=>{$$('.picks button:not(.open)').forEach(e=>reveal(e,b[+e.dataset.i],1))},900);setTimeout(()=>ovHide().then(()=>res(PICKS[p])),2600)}},C&&C.turbo?150:650)};
- el.querySelector('.picks').onclick=e=>pick(e.target.closest('button'));if(C&&C.auto){const a=()=>{if(done)return;const f=$$('.picks button:not(.open):not([disabled])');pick(f[ri(f.length)]);setTimeout(a,900)};setTimeout(a,900)}})}
+  if(k[p]>=3){done=true;$$('.picks .c'+p).forEach(e=>e.classList.add('win'));SFX.trigger();setTimeout(()=>{$$('.picks button:not(.open)').forEach(e=>reveal(e,b[+e.dataset.i],1))},1400);setTimeout(()=>ovHide().then(()=>res(PICKS[p])),4200)}},C&&C.turbo&&BONUS_TURBO?150:hot?1500:800)};
+ el.querySelector('.picks').onclick=e=>pick(e.target.closest('button'));if(C&&C.auto){const a=()=>{if(done)return;const f=$$('.picks button:not(.open):not([disabled])');pick(f[ri(f.length)]);setTimeout(a,2000)};setTimeout(a,1200)}})}
 async function potBurst(pig){const nm=['SAPHIR','RUBIN','GOLD'];for(let i=0;i<3;i++)if(pig[i]){const el=$('#pot'+i);if(!el)continue;el.classList.add('shake');SFX.shake();await sleep(1100);el.classList.remove('shake');const[x,y]=elCenter(el);SFX.burst();fxFlash(x,y,160);fxFountain(x,y,30,{v:520});fxStars(x,y,12);await banner(nm[i]+'-TOPF PLATZT!',1300,'jp')}}
 /* ---------- features ---------- */
 async function features(r,mode){const C=cur,cfg=C.cfg;let t=0;
@@ -262,7 +277,7 @@ async function runFree(n,m,pig){const C=cur,cfg=C.cfg,mode=Object.assign({free:t
  const tag=[mode.xm?'Alle Gewinne ×'+mode.xm:'',mode.mult?'Wilds mit ×2 / ×3':'',mode.high?'Nur Top-Symbole':'',cfg.zone?'Die Wild-Zone schrumpft nicht':'',cfg.coll?'Jede COLLECT-Tafel sammelt doppelt':''].filter(Boolean).join(' · ');
  await cine(KEYS[cfg.id].S||KEYS[cfg.id].B||(cfg.pigs?'pot2':'star'));await fsIntro(n,tag);setTheme('feature');C.fs={i:0,n,t:0,tag};side();$('#app').classList.add('fsmode');
  while(n>0&&i<300){n--;i++;C.fs.i=i;C.fs.n=n;side();if(n===0&&i>1){SFX.last();await banner(WT('w-last','bnimg'),C.turbo?600:1100,'img')}const r=spin(cfg,C.st,mode);RE.zoneCols=cfg.zone?ZR[r.zone]:null;await reelSpin(r,1);t+=await showWins(r);const f=await features(r,mode);t+=f;
-  if(r.fx.fs){n+=r.fx.fs;C.fs.n=n;side();SFX.trigger();shake(8,500);fxCoinBlast(12);await banner(gt(`+${r.fx.fs} FREISPIELE!`,'',40),1800,'img')}await sleep(C.turbo?150:450);reClearWins()}
+  if(r.fx.fs){n+=r.fx.fs;C.fs.n=n;side();SFX.trigger();shake(8,500);fxCoinBlast(12);await banner(gt(`+${r.fx.fs} FREISPIELE!`,'',40),1800,'img')}await sleep(r.wins.length?900:550);reClearWins()}
  C.fs=null;side();$('#app').classList.remove('fsmode');setTheme(cfg.id);await banner(WT('w-done','bnimg'),1500,'img');await celebrate(t,{title:'FREISPIELE',roll:true});C.celebrated=true;return t}
 /* ---------- the spin ---------- */
 async function doSpin(){const C=cur;if(!C||C.busy)return;const rm=ROOMS[S.room],bet=curBet();
