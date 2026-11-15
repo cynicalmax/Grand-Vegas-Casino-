@@ -31,7 +31,7 @@ function glossText(ctx,txt,x,y,size,style,o){o=o||{};const S=TS[style]||TS.gold;
 const EM={'🪙':'coin','💎':'gem','⭐':'star','☆':'star','👑':'vip','🃏':'cards','📜':'scroll','🏆':'trophy','🛤️':'pass','🏠':'home','🥇':'mgold','🥈':'msilver','🥉':'mbronze','⚙️':'gear','🛠️':'gear','🚀':'rocket','🍖':'polish',
  '🎁':'gift','🧰':'chest','👛':'bag','🏰':'mansion','✅':'check','📈':'chart','🎯':'target','🔒':'lock','🔓':'key','⏰':'clock','🎡':'wheelicon','🎟️':'ticket','🛒':'cart','🎉':'star','💥':'boom',
  '🥚':'jewel1','🐣':'jewel2','🐥':'jewel3','🐲':'jewel4','🐉':'jewel5','🌱':'chip','🎰':'chip','🦊':'crest','🔥':'fireball','🎈':'balloon','📦':'mini','🏦':'bank','🔑':'key','🐷':'pot2',
- 'ℹ️':'info','ℹ':'info','🦫':'hardhat','🦬':'bf-bison','⚡':'bolt','☄️':'fireball','🐹':'vault','🐯':'emerald','💰':'bag'};
+ 'ℹ️':'info','ℹ':'info','🦫':'bm-pig1','🦬':'bf-bison','⚡':'bolt','☄️':'fireball','🐹':'vault','🐯':'emerald','💰':'bag'};
 const EMRE=new RegExp('('+Object.keys(EM).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+'|\\p{Extended_Pictographic}\\uFE0F?)','gu');
 function fixText(n){const p=n.parentNode;if(!p||p.namespaceURI==='http://www.w3.org/2000/svg'||/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName))return;const t=n.nodeValue;EMRE.lastIndex=0;if(!EMRE.test(t))return;const f=document.createElement('span');
  f.innerHTML=t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(EMRE,m=>EM[m]?A(EM[m],m==='☆'?'dim':''):'');n.replaceWith(...f.childNodes)}
@@ -66,7 +66,7 @@ const SCN={
   ['#ff4ad8','#4ad8ff','#ffd84a','#8aff6a'].forEach((c,i)=>beam(x,40+i*107,0,(i<2?60:340)+(R()-.5)*80,70,c,.22));bokeh(x,R,40,['#ff6ae0','#6ad8ff','#ffe06a','#b88aff'],22);
   curtain(x,-10,70,0,['#c2108a','#7a0458','#3a0028']);curtain(x,340,70,1,['#c2108a','#7a0458','#3a0028']);x.fillStyle=vg(x,0,46,['#d41e8e','#7a0458']);x.fillRect(0,0,400,40);
   for(let i=0;i<16;i++)glow(x,12+i*25.3,40,8,'#fff6c0',.8)},
- biber(x,R){x.fillStyle=vg(x,0,380,['#2f9cf0','#7cd0ff','#d8f4ff']);x.fillRect(0,0,400,400);glow(x,320,70,160,'#fffbe0',.55);ball(x,320,70,34,'#ffffff','#fff8c8','#ffe68a');
+ biber(x,R){const bg=GFX.img['bg-biber'];if(bg){x.drawImage(bg,0,0,400,760);return}x.fillStyle=vg(x,0,380,['#2f9cf0','#7cd0ff','#d8f4ff']);x.fillRect(0,0,400,400);glow(x,320,70,160,'#fffbe0',.55);ball(x,320,70,34,'#ffffff','#fff8c8','#ffe68a');
   cloud(x,90,90,1.1);cloud(x,250,150,.75,.9);cloud(x,370,210,.6,.85);hills(x,R,330,60,3,'#9ae070','#5ab840','#e8ffb0');hills(x,R,360,40,4,'#6cc844','#2e8a24','#c8ff90');
   x.fillStyle=vg(x,360,760,['#5ac83a','#2a8a1e','#14520e']);x.fillRect(0,368,400,400);
   x.fillStyle=vg(x,365,760,['#f6e2b0','#d8b070']);x.beginPath();x.moveTo(194,366);x.lineTo(206,366);x.lineTo(330,760);x.lineTo(70,760);x.fill();
