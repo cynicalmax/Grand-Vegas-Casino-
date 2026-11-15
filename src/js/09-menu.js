@@ -95,7 +95,7 @@ Object.assign(ACT,{settings,help,pause:pauseMenu,rename:renameDlg,
  nameok(){const v=($('#nmi').value||'').replace(/[<>&"]/g,'').trim().slice(0,14);S.name=v;save();closeM();rerender()},
  fav(t){const id=t.dataset.id,f=S.fav||(S.fav=[]),i=f.indexOf(id);if(i<0)f.push(id);else f.splice(i,1);t.classList.toggle('on',i<0);if(i<0){const[x,y]=elCenter(t);fxStars(x,y,6)}save()},
  tog(t){const k=t.dataset.k;S[k]=S[k]?0:1;const on=!!S[k];$$(`.tg[data-k="${k}"]`).forEach(b=>{b.classList.toggle('on',on);b.firstChild.textContent=on?'AN':'AUS'});
-  if(k==='mus'){unlockAudio();if(on)music();else{clearInterval(MU.timer);MU.timer=null}}
+  if(k==='mus'){unlockAudio();if(on)music();else musicOff()}
   if(k==='snd'&&on){unlockAudio();SFX.coin()}
   if(k==='vib'&&on)vib(60);
   if(k==='lessfx')document.body.classList.toggle('lessfx',on);

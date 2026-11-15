@@ -1,19 +1,18 @@
 'use strict';
 /* ===== Goldfuchs reels: canvas reel set with physics, anticipation frames, win cycling, hold&spin board ===== */
 const FELT={biber:['#2a8a36','#0e4418'],donner:['#7a3214','#2a0c02'],rubin:['#8a0c30','#2a0010'],frei:['#2e1e96','#0a0630'],glut:['#4a120c','#140402'],schwein:['#8a1e66','#2a0420'],hamster:['#334058','#0e1018'],revier:['#106a44','#03180e']};
-const KEYS={biber:{'🦫':'bm-pig1','🏡':'bm-pig2','🪓':'bm-pig3','🪵':'bm-tool',W:'bm-wild',B:'bm-wheel',C:'bm-hat'},donner:{'🦬':'bf-bison','🦅':'bf-eagle','🐺':'bf-wolf','🦌':'bf-elk',W:'bf-wild',S:'bf-free'},
- rubin:{'7️⃣':'seven','🔔':'bell','💠':'sapphire','🍒':'cherry','🍋':'lemon','🍉':'bar','🍇':'grapes',W:'wild7',Z:'bolt',C:'ruby'},frei:{'7️⃣':'seven2','⭐':'star','🔔':'bell','🍀':'clover','🍒':'cherry','🍊':'orange','🍇':'grapes',W:'wild7b',Z:'bolt',B:'giftbonus'},
- glut:{'🎸':'guitar','🏍️':'dice','🤠':'cowboy','🌵':'cactus',W:'wildflame',S:'slotm',C:'fireball'},schwein:{'👑':'crown','💎':'diamond','💰':'bag','🎩':'tophat',W:'wildrain',P0:'pig0',P1:'pig1',P2:'pig2'},
- hamster:{'🏦':'bank','💼':'briefcase','🔑':'key','🧲':'goldstack',W:'wildspark',S:'freeticket',C:'coin',H:'collector'},revier:{'🐯':'amber','🦜':'emerald','🐍':'amethyst','🌺':'rose',W:'wilddia',S:'freestar'}};
+/* V3-Paket: WILD/FREE/BONUS-Tafeln, ein ruhiges Top-Symbol je Spiel (v3-*), sonst die bisherigen Bilder */
+const KEYS={biber:{'🦫':'v3-biber-premium','🏡':'bm-pig2','🪓':'bm-pig3','🪵':'bm-tool',W:'v3-biber-wild',B:'v3-biber-bonus',C:'bm-hat'},donner:{'🦬':'v3-donner-premium','🦅':'bf-eagle','🐺':'bf-wolf','🦌':'bf-elk',W:'v3-donner-wild',S:'v3-donner-free'},
+ rubin:{'7️⃣':'seven','🔔':'bell','💠':'sapphire','🍒':'cherry','🍋':'lemon','🍉':'bar','🍇':'grapes',W:'v3-rubin-wild',Z:'bolt',C:'v3-rubin-premium'},frei:{'7️⃣':'v3-frei-premium','⭐':'star','🔔':'bell','🍀':'clover','🍒':'cherry','🍊':'orange','🍇':'grapes',W:'v3-frei-wild',Z:'bolt',B:'v3-frei-bonus'},
+ glut:{'🎸':'v3-glut-premium','🏍️':'dice','🤠':'cowboy','🌵':'cactus',W:'v3-glut-wild',S:'v3-glut-free',C:'fireball'},schwein:{'👑':'v3-schwein-premium','💎':'diamond','💰':'bag','🎩':'tophat',W:'v3-schwein-wild',P0:'pig0',P1:'pig1',P2:'pig2'},
+ hamster:{'🏦':'v3-hamster-premium','💼':'briefcase','🔑':'key','🧲':'goldstack',W:'v3-hamster-wild',S:'v3-hamster-free',C:'coin',H:'collector'},revier:{'🐯':'v3-revier-premium','🦜':'emerald','🐍':'amethyst','🌺':'rose',W:'v3-revier-wild',S:'v3-revier-free'}};
 /* animierte Symbole: 6x4-Spritesheet, 24 Frames à 83 ms (Max' Asset-Paket) */
-const ANIM={'bf-bison':'an-bison','bf-eagle':'an-eagle','bf-wolf':'an-wolf','bf-elk':'an-elk','bf-wild':'an-wild','bf-free':'an-free',
- 'bm-pig1':'an-bm-pig1','bm-pig2':'an-bm-pig2','bm-pig3':'an-bm-pig3','bm-wild':'an-bm-wild','bm-wheel':'an-bm-wheel','bm-hat':'an-bm-hat'};
-const RANKSTYLE={biber:'green',donner:'prairie',glut:'red',schwein:'multi',hamster:'gold',revier:'multi'};
+const ANIM={'bf-eagle':'an-eagle','bf-wolf':'an-wolf','bf-elk':'an-elk','bm-pig2':'an-bm-pig2','bm-pig3':'an-bm-pig3','bm-hat':'an-bm-hat'};
 const TIER=['hut','cabin','brick','mansion'],TIERK={biber:['bm-hut','bm-cabin','bm-brick','bm-mansion']},JPST={mini:'green',minor:'cyan',major:'pink',grand:'gold'};
 const RE={cv:null,x:null,cfg:null,st:null,W:0,H:0,rows:3,cw:0,ch:0,px:6,py:6,dv:4,cols:[],mode:'reels',HS:null,win:null,flash:new Map(),antic:[0,0,0,0,0],raf:0,last:0,t:0,unit:1,
  hide:new Set(),spinSet:null,bonus:false,focus:null,hsAnt:null,pop:new Map(),rev:new Map(),hl:null,tension:false,bg:null,zoneCols:null,turbo:false,glintT:0,glints:[],onCycle:null,grid:null};
 function symKey(s,hs){const id=RE.cfg.id,k=KEYS[id]||{};if(s.s==='C'){if(s.d)return'boom';if(s.lvl!=null&&hs)return(TIERK[id]||TIER)[s.lvl];return k.C||'coin'}
- if(k[s.s])return k[s.s];if(/^(A|K|Q|J|10|9)$/.test(s.s))return'rk-'+(RANKSTYLE[id]||'multi')+'-'+s.s;return'star'}
+ if(k[s.s])return k[s.s];if(/^(A|K|Q|J|10|9)$/.test(s.s))return'v3-rank-'+s.s;return'star'}
 function reMount(cv,cfg,st){RE.cv=cv;RE.x=cv.getContext('2d');RE.cfg=cfg;RE.st=st;RE.mode='reels';RE.HS=null;RE.win=null;RE.flash.clear();RE.pop.clear();RE.rev.clear();RE.hide.clear();RE.hl=null;RE.spinSet=null;RE.tension=false;RE.antic=[0,0,0,0,0];
  RE.cols=[0,1,2,3,4].map(()=>({off:0,v:0,st:'idle',map:new Map(),t:0}));if(!RE.raf){RE.last=performance.now();RE.raf=requestAnimationFrame(reLoop)}}
 function reUnmount(){RE.cv=null;if(RE.raf)cancelAnimationFrame(RE.raf);RE.raf=0}
@@ -32,7 +31,7 @@ function reStepCol(c,dt){c.t+=dt;if(c.st==='spin'){if(c.t<.18){c.off=c.k0-.32*Ma
  else if(c.st==='stop'){const u=Math.min(1,c.t/c.dur);if(u<1){const e=1-Math.pow(1-u,3);c.off=c.from+c.dist*e;c.v=3*c.dist/c.dur*Math.pow(1-u,2)}else{const b=c.t-c.dur;if(b<.34){c.off=c.T+.24*Math.exp(-b*9)*Math.sin(b/.34*Math.PI*2.2);c.v=0}else{const n=RE.rows;c.map.clear();for(let r=0;r<n;r++)c.map.set(n-1-r,c.final[r]);c.off=n-1;c.st='idle';c.v=0;const f=c.res;c.res=null;f&&f()}}}}
 /* background (felt, panels, dividers) */
 function reBg(){if(RE.bg&&RE.bg.w===RE.W&&RE.bg.h===RE.H&&RE.bg.id===RE.cfg.id)return RE.bg.c;const c=document.createElement('canvas');c.width=RE.cv.width;c.height=RE.cv.height;const x=c.getContext('2d');x.scale(DPR,DPR);const f=FELT[RE.cfg.id]||FELT.biber;
- x.fillStyle=vg(x,0,RE.H,[f[0],f[1]]);x.fillRect(0,0,RE.W,RE.H);
+ x.globalAlpha=.82;x.fillStyle=vg(x,0,RE.H,[f[0],f[1]]);x.fillRect(0,0,RE.W,RE.H);x.fillStyle='rgba(8,4,16,.35)';x.fillRect(0,0,RE.W,RE.H);x.globalAlpha=1;
  for(let ci=0;ci<5;ci++){const cx=colX(ci),g=x.createLinearGradient(cx,0,cx+RE.cw,0);g.addColorStop(0,'rgba(0,0,0,.35)');g.addColorStop(.5,'rgba(255,255,255,.07)');g.addColorStop(1,'rgba(0,0,0,.35)');x.fillStyle=g;x.fillRect(cx,0,RE.cw,RE.H);
   const v=x.createLinearGradient(0,0,0,RE.H);v.addColorStop(0,'rgba(0,0,0,.55)');v.addColorStop(.12,'rgba(0,0,0,0)');v.addColorStop(.88,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');x.fillStyle=v;x.fillRect(cx,0,RE.cw,RE.H)}
  for(let ci=1;ci<5;ci++){const dx=colX(ci)-RE.dv,g=x.createLinearGradient(dx,0,dx+RE.dv,0);g.addColorStop(0,'#7a4a00');g.addColorStop(.4,'#fff3a0');g.addColorStop(.7,'#e0a020');g.addColorStop(1,'#5a3000');x.fillStyle=g;x.fillRect(dx,0,RE.dv,RE.H)}
@@ -40,7 +39,9 @@ function reBg(){if(RE.bg&&RE.bg.w===RE.W&&RE.bg.h===RE.H&&RE.bg.id===RE.cfg.id)r
 /* symbol drawing */
 function valText(s){if(s.d)return null;if(s.j)return[s.j.toUpperCase(),JPST[s.j]];if(!s.v)return null;return[fmt(s.v*RE.unit),'white']}
 function drawTxt(x,t,style,size,cx,cy,maxW,sc){const im=txtSprite(t,Math.round(size*DPR),style),w=im.width/DPR,h=im.height/DPR,f=Math.min(1,maxW/w)*(sc||1);x.drawImage(im,cx-w*f/2,cy-h*f/2,w*f,h*f)}
-function drawSym(x,s,cx,cy,sc,hs,al,at){if(!s)return;const k=symKey(s,hs),im=assetCanvas(k),z=Math.min(RE.cw,RE.ch)*.94*(sc||1);if(al!=null)x.globalAlpha=al;
+/* Größe je Symbolklasse (V3): WILD/FREE/BONUS 96 %, Top-Symbol 82 %, Kartenwerte 54 % der Zelle, alles andere wie bisher */
+const symScale=k=>k.startsWith('v3-rank-')?.54:/^v3-\w+-(wild|free|bonus)$/.test(k)?.96:/^v3-\w+-premium$/.test(k)?.84:.94;
+function drawSym(x,s,cx,cy,sc,hs,al,at){if(!s)return;const k=symKey(s,hs),im=assetCanvas(k),z=Math.min(RE.cw,RE.ch)*symScale(k)*(sc||1);if(al!=null)x.globalAlpha=al;
  const sh=at!=null&&ANIM[k]&&GFX.img[ANIM[k]];if(sh){const f=Math.floor(at/.083)%24,fw=sh.width/6,fh=sh.height/4;x.drawImage(sh,(f%6)*fw,Math.floor(f/6)*fh,fw,fh,cx-z/2,cy-z/2,z,z)}else x.drawImage(im,cx-z/2,cy-z/2,z,z);
  if(s.s==='C'&&s.lvl==null&&!s.d){const vt=valText(s);if(vt)drawTxt(x,vt[0],vt[1],RE.ch*(vt[0].length>6?.21:.26),cx,cy+RE.ch*.06,RE.cw*.98,sc)}
  if(al!=null)x.globalAlpha=1}
