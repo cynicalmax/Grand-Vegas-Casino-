@@ -1,6 +1,7 @@
 'use strict';
 /* ===== Goldfuchs fx: 3D coin showers, gold bars, gems, star glints, rings, flying coins, floating numbers ===== */
 const FX={c:null,x:null,p:[],raf:0,w:0,h:0,spr:{},last:0,txt:new Map()};
+const fxN=n=>typeof S!=='undefined'&&S.lessfx?Math.max(1,Math.round((n||0)*.3)):n;
 function fxInit(){FX.c=document.getElementById('fx');FX.x=FX.c.getContext('2d');fxResize();addEventListener('resize',fxResize);
  const mk=(k,s)=>{const c=document.createElement('canvas');c.width=c.height=s;c.getContext('2d').drawImage(assetCanvas(k),0,0,s,s);return c};
  FX.spr={coin:mk('coin',96),bar:mk('goldbar',110),gem:mk('gem',84),star:mk('star',80),stack:mk('goldstack',120),fire:mk('fireball',140),bstar:mk('jewel2',84)}}
@@ -9,17 +10,17 @@ function fxRun(){if(!FX.raf){FX.last=performance.now();FX.raf=requestAnimationFr
 const R_=Math.random;
 function fxAdd(p){p.age=0;p.life=p.life||4;FX.p.push(p);fxRun();return p}
 /* coin shower from the top; kinds weights: coin, bar, gem */
-function fxRain(n,o){o=o||{};const kinds=o.kinds||{coin:.84,bar:.1,gem:.06},sp=o.spread||1.2;for(let i=0;i<n;i++){const r=R_();let k='coin',acc=0;for(const q in kinds){acc+=kinds[q];if(r<acc){k=q;break}}
+function fxRain(n,o){n=fxN(n);o=o||{};const kinds=o.kinds||{coin:.84,bar:.1,gem:.06},sp=o.spread||1.2;for(let i=0;i<n;i++){const r=R_();let k='coin',acc=0;for(const q in kinds){acc+=kinds[q];if(r<acc){k=q;break}}
  fxAdd({k,x:R_()*FX.w,y:-40-R_()*80,vx:(R_()-.5)*60,vy:120+R_()*240,g:520,s:(k==='coin'?26:k==='bar'?38:26)*(.8+R_()*.6)*(o.scale||1),ph:R_()*6,vph:6+R_()*8,rot:R_()*6,vr:(R_()-.5)*4,delay:R_()*sp,life:5})}}
-function fxFountain(x,y,n,o){o=o||{};for(let i=0;i<n;i++){const a=-Math.PI/2+(R_()-.5)*(o.arc||1.4),v=(o.v||620)*(.55+R_()*.6),k=R_()<(o.bars||0)?'bar':R_()<(o.gems||0)?'gem':'coin';
+function fxFountain(x,y,n,o){n=fxN(n);o=o||{};for(let i=0;i<n;i++){const a=-Math.PI/2+(R_()-.5)*(o.arc||1.4),v=(o.v||620)*(.55+R_()*.6),k=R_()<(o.bars||0)?'bar':R_()<(o.gems||0)?'gem':'coin';
  fxAdd({k,x:x+(R_()-.5)*(o.w||20),y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:900,s:(k==='bar'?36:26)*(.75+R_()*.6),ph:R_()*6,vph:8+R_()*10,rot:R_()*6,vr:(R_()-.5)*6,delay:R_()*(o.spread||.25),life:4})}}
-function fxBurst(x,y,n,o){o=o||{};for(let i=0;i<n;i++){const a=R_()*6.2832,v=(o.v||420)*(.4+R_()*.8),k=R_()<.25?'glint':'coin';
+function fxBurst(x,y,n,o){n=fxN(n);o=o||{};for(let i=0;i<n;i++){const a=R_()*6.2832,v=(o.v||420)*(.4+R_()*.8),k=R_()<.25?'glint':'coin';
  fxAdd({k,x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,g:k==='glint'?0:700,drag:k==='glint'?2.5:0,s:k==='glint'?14+R_()*14:20+R_()*14,ph:R_()*6,vph:8+R_()*8,life:k==='glint'?.9:3,col:o.col})}}
-function fxGlints(rect,n,o){o=o||{};for(let i=0;i<n;i++)fxAdd({k:'glint',x:rect.left+R_()*rect.width,y:rect.top+R_()*rect.height,vx:0,vy:0,g:0,s:(o.s||16)*(.6+R_()*.8),delay:R_()*(o.spread||1),life:.7+R_()*.4,col:o.col})}
-function fxStars(x,y,n,o){o=o||{};for(let i=0;i<n;i++){const a=R_()*6.2832,v=(o.v||260)*(.4+R_()*.8);fxAdd({k:'ostar',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:-30,drag:1.4,s:10+R_()*16,rot:R_()*6,vr:(R_()-.5)*4,life:1.4+R_()*.6,col:o.col||'#fff6b0'})}}
+function fxGlints(rect,n,o){n=fxN(n);o=o||{};for(let i=0;i<n;i++)fxAdd({k:'glint',x:rect.left+R_()*rect.width,y:rect.top+R_()*rect.height,vx:0,vy:0,g:0,s:(o.s||16)*(.6+R_()*.8),delay:R_()*(o.spread||1),life:.7+R_()*.4,col:o.col})}
+function fxStars(x,y,n,o){n=fxN(n);o=o||{};for(let i=0;i<n;i++){const a=R_()*6.2832,v=(o.v||260)*(.4+R_()*.8);fxAdd({k:'ostar',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:-30,drag:1.4,s:10+R_()*16,rot:R_()*6,vr:(R_()-.5)*4,life:1.4+R_()*.6,col:o.col||'#fff6b0'})}}
 function fxRing(x,y,o){o=o||{};fxAdd({k:'ring',x,y,s:o.s||40,s2:o.s2||260,life:o.life||.6,col:o.col||'#fff2a0',g:0,vx:0,vy:0})}
 function fxFlash(x,y,r,o){o=o||{};fxAdd({k:'flash',x,y,s:r||200,life:o.life||.45,col:o.col||'#fffbe0',g:0,vx:0,vy:0})}
-function fxConfetti(n){const cs=['#ff4a6a','#ffd23c','#4ad8ff','#8aff6a','#d46aff','#ff9a3a'];for(let i=0;i<n;i++)fxAdd({k:'conf',x:R_()*FX.w,y:-20-R_()*60,vx:(R_()-.5)*80,vy:80+R_()*120,g:60,drag:.3,s:6+R_()*6,ph:R_()*6,vph:4+R_()*6,rot:R_()*6,vr:(R_()-.5)*8,col:cs[i%cs.length],delay:R_()*1.5,life:6})}
+function fxConfetti(n){n=fxN(n);const cs=['#ff4a6a','#ffd23c','#4ad8ff','#8aff6a','#d46aff','#ff9a3a'];for(let i=0;i<n;i++)fxAdd({k:'conf',x:R_()*FX.w,y:-20-R_()*60,vx:(R_()-.5)*80,vy:80+R_()*120,g:60,drag:.3,s:6+R_()*6,ph:R_()*6,vph:4+R_()*6,rot:R_()*6,vr:(R_()-.5)*8,col:cs[i%cs.length],delay:R_()*1.5,life:6})}
 /* coins flying along an arc from a point to a target element; onHit(i) per arrival */
 function fxFly(fx,fy,tx,ty,n,o){o=o||{};return new Promise(res=>{let hit=0;if(!n)return res();for(let i=0;i<n;i++){const cx=(fx+tx)/2+(R_()-.5)*(o.spread||220),cy=Math.min(fy,ty)-60-R_()*160;
  fxAdd({k:o.kind||'coin',fly:1,x0:fx+(R_()-.5)*(o.jit||40),y0:fy+(R_()-.5)*(o.jit||40),cx,cy,tx,ty,x:fx,y:fy,s:o.s||26,ph:R_()*6,vph:10,delay:i*(o.stagger==null?.035:o.stagger),dur:(o.dur||.75)*(.85+R_()*.3),life:9,
@@ -57,5 +58,5 @@ function elCenter(el){const r=(typeof el==='string'?document.querySelector(el):e
 function fxMeteor(x0,y0,x1,y1,o){o=o||{};return new Promise(res=>{fxAdd({k:'meteor',x0,y0,x1,y1,x:x0,y:y0,s:o.s||70,dur:o.dur||.55,life:5,ph:0,onEnd:()=>{fxExplode(x1,y1,o.big);res()}})})}
 function fxExplode(x,y,big){const n=big?40:22;for(let i=0;i<n;i++){const a=R_()*6.2832,v=(big?520:320)*(.3+R_()*.9);fxAdd({k:'ember',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:180,drag:2.2,s:6+R_()*12,life:.5+R_()*.6,col:R_()<.5?'#ffd060':'#ff6a10'})}
  fxRing(x,y,{s:8,s2:big?220:110,col:'#ffb040',life:.5});fxFlash(x,y,big?260:140,{col:'#fff0c0',life:.35})}
-function fxEmbers(rect,n){for(let i=0;i<n;i++)fxAdd({k:'ember',x:rect.left+R_()*rect.width,y:rect.top+rect.height*(.6+R_()*.4),vx:(R_()-.5)*30,vy:-60-R_()*140,g:-20,drag:.4,s:4+R_()*7,life:1+R_()*1.2,col:R_()<.5?'#ffcf50':'#ff7a20',delay:R_()*.8})}
-function fxCoinBlast(n){const W=FX.w,H=FX.h;fxFountain(W*.12,H+10,n,{v:1100,arc:.5,bars:.12,gems:.05,spread:.5});fxFountain(W*.88,H+10,n,{v:1100,arc:.5,bars:.12,gems:.05,spread:.5})}
+function fxEmbers(rect,n){n=fxN(n);for(let i=0;i<n;i++)fxAdd({k:'ember',x:rect.left+R_()*rect.width,y:rect.top+rect.height*(.6+R_()*.4),vx:(R_()-.5)*30,vy:-60-R_()*140,g:-20,drag:.4,s:4+R_()*7,life:1+R_()*1.2,col:R_()<.5?'#ffcf50':'#ff7a20',delay:R_()*.8})}
+function fxCoinBlast(n){n=fxN(n);const W=FX.w,H=FX.h;fxFountain(W*.12,H+10,n,{v:1100,arc:.5,bars:.12,gems:.05,spread:.5});fxFountain(W*.88,H+10,n,{v:1100,arc:.5,bars:.12,gems:.05,spread:.5})}

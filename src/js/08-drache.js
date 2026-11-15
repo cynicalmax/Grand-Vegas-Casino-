@@ -9,8 +9,8 @@ const DRACHE={id:'drache',bm:2.4,name:'Drachenfeuer',sub:'Feuerkugel-Bonus · 4 
 SLOTS.push(DRACHE);
 SCALE.drache=2.1425;
 FELT.drache=['#5a0a14','#1a0206'];
-KEYS.drache={'🐲':'dr_dragon','🦚':'dr_phoenix','🏮':'dr_lantern','🥮':'dr_ingot',A:'dr_ace',K:'dr_king','🪷':'dr_lotus','🧿':'dr_jade','🪭':'dr_fan',
- W:'dr_wild',S:'dr_free',C:'dr_ball',Cmini:'dr_ball_mini',Cminor:'dr_ball_minor',Cmajor:'dr_ball_major',Cgrand:'dr_ball_grand'};
+KEYS.drache={'🐲':'v3-drache-premium','🦚':'dr_phoenix','🏮':'dr_lantern','🥮':'dr_ingot',A:'v3-rank-A',K:'v3-rank-K','🪷':'dr_lotus','🧿':'dr_jade','🪭':'dr_fan',
+ W:'v3-drache-wild',S:'v3-drache-free',C:'dr_ball',Cmini:'dr_ball_mini',Cminor:'dr_ball_minor',Cmajor:'dr_ball_major',Cgrand:'dr_ball_grand'};
 THEME_OF.drache='rock';
 /* Jackpot-Kugeln in eigener Farbe (MINI grün, MINOR blau, MAJOR violett) */
 const _drSym=symKey;

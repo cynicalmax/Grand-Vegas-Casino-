@@ -1,8 +1,9 @@
 'use strict';
 /* ===== Goldfuchs audio v3: stereo band with FM piano, strings, brass section, 808 metals, delay/reverb; 16-bar A/B songs; casino SFX ===== */
+const mvol=()=>typeof S!=='undefined'&&S.vol!=null?S.vol:1;
 let AC=null;const MU={theme:'lobby',step:0,next:0,timer:null,want:'lobby',tension:false};
 function buildGraph(a){const g={};g.out=a.createDynamicsCompressor();g.out.threshold.value=-12;g.out.ratio.value=3.5;g.out.attack.value=.004;g.out.release.value=.18;g.out.connect(a.destination);
- g.mbus=a.createGain();g.mbus.gain.value=.38;g.mbus.connect(g.out);g.sbus=a.createGain();g.sbus.gain.value=.9;g.sbus.connect(g.out);
+ g.mbus=a.createGain();g.mbus.gain.value=.38*mvol();g.mbus.connect(g.out);g.sbus=a.createGain();g.sbus.gain.value=.9;g.sbus.connect(g.out);
  const len=Math.floor(a.sampleRate*2.6),b=a.createBuffer(2,len,a.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2)*(i<a.sampleRate*.01?i/(a.sampleRate*.01):1)}
  g.rev=a.createConvolver();g.rev.buffer=b;const rg=a.createGain();rg.gain.value=.28;g.rev.connect(rg);rg.connect(g.out);
  g.dly=a.createDelay(1);g.dly.delayTime.value=.36;const fb=a.createGain();fb.gain.value=.32;const dl=a.createBiquadFilter();dl.type='lowpass';dl.frequency.value=2600;const dp=a.createStereoPanner?a.createStereoPanner():null;
@@ -113,8 +114,9 @@ function music(th){if(th)MU.want=th;clearInterval(MU.timer);MU.timer=null;if(!S.
    if(MU.step%16===0&&MU.want!==MU.theme){MU.theme=MU.want;MU.step=0}}},60)}
 function setTheme(th){const k=SONGS[th]?th:THEME_OF[th]||'lobby';MU.want=k;if(!MU.timer)music()}
 function fadeMusic(to,ms){if(!GR||!AC)return;const g=GR.mbus.gain,t=AC.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(to,t+(ms||300)/1000)}
-function duck(ms){if(!GR||!S.mus)return;fadeMusic(.16,90);clearTimeout(MU.dk);MU.dk=setTimeout(()=>fadeMusic(.38,600),ms||900)}
+function duck(ms){if(!GR||!S.mus)return;fadeMusic(.16*mvol(),90);clearTimeout(MU.dk);MU.dk=setTimeout(()=>fadeMusic(.38*mvol(),600),ms||900)}
 function tension(on){MU.tension=!!on}
+function musicOff(){clearInterval(MU.timer);MU.timer=null}
 /* ---- sound effects ---- */
 const sfx=fn=>function(){if(!S.snd)return;const a=ac();if(!a)return;try{fn(a.currentTime+.005,GR.sbus,...arguments)}catch(e){}};
 function tone(f,d,type,v,when){if(!S.snd)return;const a=ac();if(!a)return;try{vo(type||'sine',f,a.currentTime+(when||0),d,v||.08,GR.sbus)}catch(e){}}
