@@ -452,7 +452,7 @@ body.lessfx .gbtn.pulse,body.lessfx .bsq.rdy .pbtn,body.lessfx .bbar.rdy .gold,b
 @media (max-width:380px){.bal .pill{font-size:16px}.bal .pill img.art{width:26px;height:26px}.bsep{margin:8px 4px}.bal .lvb{padding:0 7px}.mdiv b{font-size:21px}.mrow b{font-size:17px}.seg button{font-size:13.5px}}
 /* Bonusspiele: mehr Spannung beim Aufdecken */
 .wwrap{transition:transform 2.6s cubic-bezier(.3,.1,.2,1)}
-.wwrap.zoom{transform:scale(1.1)}
+.wwrap.zoom{transform:scale(1.06)}
 #wres.pop{animation:tpop .55s cubic-bezier(.2,1.6,.4,1)}
 .picks button.hot{animation:shake .07s infinite alternate,hotglow .5s infinite alternate}
 @keyframes hotglow{from{filter:brightness(1) drop-shadow(0 0 0 #ffd23c)}to{filter:brightness(1.35) drop-shadow(0 0 14px #ffd23c)}}
